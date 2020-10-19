@@ -1,0 +1,1 @@
+- Introduce a command-line tool in golang to use git-diff for displaying similarity of files as absolute value of diff output.
