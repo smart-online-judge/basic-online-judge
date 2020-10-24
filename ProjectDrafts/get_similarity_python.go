@@ -46,9 +46,9 @@ func main() {
 		res_mat[i] = make([]float32, mat_size)
 	}
 
-	for index, str := range out_arr[1:] {
-		val, _ := strconv.ParseFloat(str, 32)
-		res_mat[index / mat_size][index % mat_size] = float32(val)
+	for idx, upper_b := 1, mat_size*mat_size; idx < upper_b; idx++ {
+		val, _ := strconv.ParseFloat(out_arr[idx], 32)
+		res_mat[idx / mat_size][idx % mat_size] = float32(val)
 	}
 	fmt.Println(res_mat)
 }

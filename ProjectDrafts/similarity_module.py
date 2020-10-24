@@ -86,10 +86,10 @@ if __name__ == '__main__':
             print('0')
             sys.exit()
 
-        output_str = "%d," % len(RES_MAT[0])
+        output_arr = [str(len(RES_MAT[0]))]
         for arr in RES_MAT:
             for val in arr:
-                output_str += "%.2f," % val
-        print(output_str[:-1])
+                output_arr.append("%.2f" % val)
+        print(','.join(output_arr))
     else:
         heatmap(FILE_NAMES, FILE_NAMES, RES_MAT)
