@@ -37,8 +37,8 @@ func uploadFile(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	const _32K = (1 << 10) * 32
-	if err = req.ParseMultipartForm(_32K); nil != err {
+	const _32M = (1 << 20) * 32
+	if err = req.ParseMultipartForm(_32M); nil != err {
 		http.Error(w, "507 - Maximum upload size limit exceeded!", http.StatusInsufficientStorage)
 		return
 	}
@@ -59,7 +59,7 @@ func uploadFile(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// 32K buffer copy
+		// 32M buffer copy
 		if _, err = io.Copy(outfile, infile); nil != err {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			ErrorLogger.Println(err)
