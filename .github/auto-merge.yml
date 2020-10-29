@@ -1,0 +1,6 @@
+minApprovals:
+  MEMBER: 1
+requiredLabels:
+- merge
+mergeMethod: rebase
+reportStatus: true
