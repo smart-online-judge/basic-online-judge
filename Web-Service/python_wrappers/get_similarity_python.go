@@ -1,25 +1,24 @@
 package nlp
 
 import (
-    "os"
-	"path"
-	"os/exec"
-	"strings"
 	"bytes"
+	"os"
+	"os/exec"
+	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 var (
-	python_script_path string
+	python_script_path      string
 	python_interpreter_path string
 )
 
-func init()  {
+func init() {
 	python_script_path = "python_wrappers/similarity_module.py"
 	python_interpreter_path = "/usr/bin/python3"
 }
-
 
 func ComputePairwiseSimilarity(input_path string, args ...string) ([][]float32, error) {
 	var err error
@@ -38,10 +37,10 @@ func ComputePairwiseSimilarity(input_path string, args ...string) ([][]float32, 
 
 	args = append([]string{python_script_path}, args...)
 	var pipe_out bytes.Buffer
-    cmd := exec.Command(python_interpreter_path, append(args, input_path)...)
-    cmd.Stdout = &pipe_out
+	cmd := exec.Command(python_interpreter_path, append(args, input_path)...)
+	cmd.Stdout = &pipe_out
 	cmd.Stderr = os.Stderr
-	
+
 	if err = cmd.Run(); err != nil {
 		return nil, err
 	}
@@ -56,7 +55,7 @@ func ComputePairwiseSimilarity(input_path string, args ...string) ([][]float32, 
 
 	for idx, upper_b := 1, mat_size*mat_size; idx < upper_b; idx++ {
 		val, _ := strconv.ParseFloat(out_arr[idx], 32)
-		res_mat[idx / mat_size][idx % mat_size] = float32(val)
+		res_mat[idx/mat_size][idx%mat_size] = float32(val)
 	}
 
 	return res_mat, nil
