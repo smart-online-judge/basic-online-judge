@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	// TODO Make sure "NLP" is seen here.
-	// I want to see where the module comes from, not guess.
 	// See how guuid is imported
 	"project/python_wrappers"
 	guuid "github.com/google/uuid"
@@ -28,7 +27,6 @@ func init() {
 	}
 
 	if _, err := os.Stat("uploaded"); os.IsNotExist(err) {
-		// TODO 0777 is too much privilege, but it does not work with 0666.
 		err := os.Mkdir("uploaded", 0777)
 		if err != nil {
 			log.Fatal(err)
@@ -69,7 +67,7 @@ func viewSimilarity(w http.ResponseWriter, req *http.Request) {
 	var result [][]float32
 	// If we are not ready, deny of service and halt
 	if result, ok = UUIDResult[id]; ok == false {
-		fmt.Printf("Result for %s is not yet ready", id);
+		fmt.Fprintf(w, "Result for %s is not found.", id);
 		return
 	}
 	// Serve the result.
@@ -87,8 +85,8 @@ func uploadFiles(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	const _32K = (1 << 10) * 32
-	if err = req.ParseMultipartForm(_32K); nil != err {
+	const _5M = (1 << 20) * 5
+	if err = req.ParseMultipartForm(_5M); nil != err {
 		http.Error(w, "507 - Maximum upload size limit exceeded!", http.StatusInsufficientStorage)
 		return
 	}
@@ -109,7 +107,7 @@ func uploadFiles(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// 32K buffer copy
+		// 5M buffer copy
 		if _, err = io.Copy(outfile, infile); nil != err {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			ErrorLogger.Println(err)
@@ -117,9 +115,9 @@ func uploadFiles(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// Report a link to the personal room
 	id := guuid.New()
 	go prepareViewForUUID(id)
+	// Report a link to the personal room
 	fmt.Fprintf(w, "%s", id.String())
 }
 
