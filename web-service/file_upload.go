@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"io"
-	//"strconv"
 	"log"
 	"mime/multipart"
 	"net/http"
-	//"net/url"
 	"os"
 	"path"
 	// TODO Make sure "NLP" is seen here.
@@ -20,9 +18,6 @@ import (
 var (
 	WarningLogger *log.Logger
 	ErrorLogger   *log.Logger
-	UUIDInMemCache map[guuid.UUID]bool
-	// TODO remove this, leave UUIDResult
-	UUIDIsReadyForView map[guuid.UUID]bool
 	UUIDResult map[guuid.UUID][][]float32
 )
 
@@ -42,19 +37,14 @@ func init() {
 
 	WarningLogger = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 	ErrorLogger = log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
-	UUIDInMemCache = make(map[guuid.UUID]bool)
-	UUIDIsReadyForView = make(map[guuid.UUID]bool)
 	UUIDResult = make(map[guuid.UUID][][]float32)
 }
 
 func prepareViewForUUID(id guuid.UUID) {
-	// TODO think about concurrency
-	UUIDInMemCache[id] = true
 	res, err := nlp.ComputePairwiseSimilarity("uploaded", "--external")
 	if err != nil {
 		ErrorLogger.Println(err)
 	}
-	UUIDIsReadyForView[id] = true
 	UUIDResult[id] = res
 }
 
@@ -62,9 +52,11 @@ func prepareViewForUUID(id guuid.UUID) {
 
 func viewSimilarity(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("viewSimilarity End Point hit")
-	// Retrieve view id
+	// Retrieve view UUID.
+	// The url is expected to be of this form:
+	// `hostname/view?id=UUID_VALUE`
 	var id_ns, ok = req.URL.Query()["id"]
-	if !ok {
+	if !ok || len(id_ns) == 0 {
 		ErrorLogger.Println("Invalid url format")
 		return
 	}
@@ -74,22 +66,24 @@ func viewSimilarity(w http.ResponseWriter, req *http.Request) {
 		ErrorLogger.Println("Invalid UUID value")
 		return
 	}
-	// If we are not ready, deny of service.
-	if _, err := UUIDIsReadyForView[id]; err == true {
+	var result [][]float32
+	// If we are not ready, deny of service and halt
+	if result, ok = UUIDResult[id]; ok == false {
 		fmt.Printf("Result for %s is not yet ready", id);
 		return
 	}
 	// Serve the result.
-	fmt.Println("%b", UUIDResult[id])
+	fmt.Fprintf(w, "%s", result)
 }
 
 func uploadFiles(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
 	var err error
 
-	if req.Method == "GET" {
+	fmt.Println(req.Method)
+	if req.Method != "POST" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		WarningLogger.Println("Get request not supported")
+		WarningLogger.Println("%s request not supported", req.Method)
 		return
 	}
 
@@ -121,29 +115,13 @@ func uploadFiles(w http.ResponseWriter, req *http.Request) {
 			ErrorLogger.Println(err)
 			return
 		}
-
-		// fmt.Printf("Uploaded File: %+v\n", fh.Filename)
-		// fmt.Printf("File Size: %+v\n", fh.Size)
-		// fmt.Printf("MIME Header: %+v\n", fh.Header)
 	}
 
-	/// Report a link to the personal room
-
-	// TODO Fix concurrent access/modification
+	// Report a link to the personal room
 	id := guuid.New()
-	for {
-		if _, ok := UUIDInMemCache[id]; ok {
-			id = guuid.New()
-			continue
-		}
-		break
-	}
 	go prepareViewForUUID(id)
-
-	fmt.Fprint(w, "%s", id.String())
+	fmt.Fprintf(w, "%s", id.String())
 }
-
-// Necessary
 
 func setupRoutes() {
 	http.HandleFunc("/upload", uploadFiles)
