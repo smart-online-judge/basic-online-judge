@@ -1,4 +1,4 @@
-module project
+module web-service
 
 go 1.15
 

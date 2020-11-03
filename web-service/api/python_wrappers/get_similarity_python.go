@@ -1,4 +1,4 @@
-package nlp
+package text_similarity
 
 import (
 	"bytes"
@@ -10,32 +10,28 @@ import (
 	"strings"
 )
 
-var (
-	python_script_path      string
-	python_interpreter_path string
+const (
+	python_script_path = "api/python_wrappers/similarity_module.py"
+	python_interpreter_path = "/usr/bin/python3"
 )
 
-func init() {
-	python_script_path = "python_wrappers/similarity_module.py"
-	python_interpreter_path = "/usr/bin/python3"
-}
-
-func ComputePairwiseSimilarity(input_path string, args ...string) ([][]float32, error) {
+func GetPairwiseSimilarity(input_path string, args ...string) ([][]float32, error) {
 	var err error
 	var cur_path string
 	if cur_path, err = filepath.Abs(filepath.Dir(os.Args[0])); err != nil {
 		return nil, err
 	}
 
+	var execute_path = python_script_path
 	if !strings.HasPrefix(python_script_path, string(os.PathSeparator)) {
-		python_script_path = path.Join(cur_path, python_script_path)
+		execute_path = path.Join(cur_path, execute_path)
 	}
 
 	if !strings.HasPrefix(input_path, string(os.PathSeparator)) {
 		input_path = path.Join(cur_path, input_path)
 	}
 
-	args = append([]string{python_script_path}, args...)
+	args = append([]string{execute_path}, args...)
 	var pipe_out bytes.Buffer
 	cmd := exec.Command(python_interpreter_path, append(args, input_path)...)
 	cmd.Stdout = &pipe_out
