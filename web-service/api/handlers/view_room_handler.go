@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"net/http"
 	"fmt"
 	guuid "github.com/google/uuid"
-	nlp   "web-service/api/python_wrappers"
+	"net/http"
+	nlp "web-service/api/python_wrappers"
 )
 
 var (
-	UUIDResult     map[guuid.UUID][][]float32
+	UUIDResult map[guuid.UUID][][]float32
 )
 
 func PrepareViewRoomHandler() {
@@ -34,7 +34,6 @@ func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var err error
 	view_id, err := guuid.Parse(id_str)
 	if err != nil {
 		ErrorLogger.Println("Invalid UUID value")
@@ -45,7 +44,7 @@ func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 	// If we are not ready, deny of service and halt
 	result, present := UUIDResult[view_id]
 	if !present {
-		fmt.Fprintf(w, "Result for %s is not found.", view_id);
+		fmt.Fprintf(w, "Result for %s is not found.", view_id)
 		return
 	}
 

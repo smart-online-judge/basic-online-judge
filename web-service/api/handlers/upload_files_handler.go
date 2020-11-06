@@ -2,16 +2,16 @@ package handlers
 
 import (
 	"fmt"
+	guuid "github.com/google/uuid"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
-	guuid "github.com/google/uuid"
 )
 
 var (
-	UploadFilesDir  string
+	UploadFilesDir string
 )
 
 func PrepareUploadFilesHandler(upload_files_dir string) {

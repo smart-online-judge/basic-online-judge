@@ -3,18 +3,18 @@ package main
 import (
 	"log"
 	"net/http"
-	utils "web-service/api/utils"
 	handlers "web-service/api/handlers"
+	utils "web-service/api/utils"
 )
 
 const (
-	LoggingPath = "api/logging/main_log.log"
+	LoggingPath    = "api/logging/main_log.log"
 	UploadFilesDir = "uploaded"
 )
 
 var (
-	ErrorLogger   *log.Logger
-	DebugLogger   *log.Logger
+	ErrorLogger *log.Logger
+	DebugLogger *log.Logger
 )
 
 func init() {
@@ -24,7 +24,6 @@ func init() {
 	DebugLogger = utils.GetLogger("DEBUG: ")
 }
 
-
 func setupRoutes() {
 	handlers.PrepareHandlersCommon()
 	handlers.PrepareUploadFilesHandler(UploadFilesDir)
@@ -33,7 +32,6 @@ func setupRoutes() {
 	http.HandleFunc("/upload_files", handlers.UploadFilesHandler)
 	http.HandleFunc("/view", handlers.ViewRoomHandler)
 }
-
 
 func main() {
 	setupRoutes()

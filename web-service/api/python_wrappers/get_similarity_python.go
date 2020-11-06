@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	python_script_path = "api/python_wrappers/similarity_module.py"
+	python_script_path      = "api/python_wrappers/similarity_module.py"
 	python_interpreter_path = "/usr/bin/python3"
 )
 

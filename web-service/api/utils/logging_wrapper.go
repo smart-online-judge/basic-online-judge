@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"path/filepath"
-	"os"
 	"log"
+	"os"
+	"path/filepath"
 )
 
 var (
@@ -33,12 +33,3 @@ func InitializeLogger(path string) {
 func GetLogger(prefix string) *log.Logger {
 	return log.New(loggingFile, prefix, log.Ldate|log.Ltime|log.Lshortfile)
 }
-
-
-
-
-
-
-
-
-

@@ -11,7 +11,7 @@ var (
 	DebugLogger   *log.Logger
 )
 
-func PrepareHandlersCommon()  {
+func PrepareHandlersCommon() {
 	WarningLogger = utils.GetLogger("WARNING: ")
 	ErrorLogger = utils.GetLogger("ERROR: ")
 	DebugLogger = utils.GetLogger("DEBUG: ")
