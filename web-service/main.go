@@ -4,17 +4,20 @@ import (
 	"log"
 	"net/http"
 	handlers "web-service/api/handlers"
+	containers "web-service/api/storage_container"
 	utils "web-service/api/utils"
 )
 
 const (
 	LoggingPath    = "api/logging/main_log.log"
 	UploadFilesDir = "uploaded"
+	DbPath         = "database/meta.db"
 )
 
 var (
 	ErrorLogger *log.Logger
 	DebugLogger *log.Logger
+	container   *containers.DbClientContainer
 )
 
 func init() {
@@ -22,13 +25,21 @@ func init() {
 
 	ErrorLogger = utils.GetLogger("ERROR: ")
 	DebugLogger = utils.GetLogger("DEBUG: ")
+
+	container = containers.NewDB()
+
+	container.Initialize(DbPath)
+	DebugLogger.Println("Initialized database container in", DbPath)
+
+	handlers.InitializeHandlersCommon()
+	handlers.InitializeUploadFilesHandler(UploadFilesDir)
+	DebugLogger.Println("Initialized upload Files handler in", UploadFilesDir)
+
+	handlers.InitializeViewRoomHandler(container)
+	DebugLogger.Println("Initialized view Room handler with", container)
 }
 
 func setupRoutes() {
-	handlers.PrepareHandlersCommon()
-	handlers.PrepareUploadFilesHandler(UploadFilesDir)
-	handlers.PrepareViewRoomHandler()
-
 	http.HandleFunc("/upload_files", handlers.UploadFilesHandler)
 	http.HandleFunc("/view", handlers.ViewRoomHandler)
 }

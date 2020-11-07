@@ -5,14 +5,15 @@ import (
 	guuid "github.com/google/uuid"
 	"net/http"
 	nlp "web-service/api/python_wrappers"
+	containers "web-service/api/storage_container"
 )
 
 var (
-	UUIDResult map[guuid.UUID][][]float32
+	db containers.ClientContainer
 )
 
-func PrepareViewRoomHandler() {
-	UUIDResult = make(map[guuid.UUID][][]float32)
+func InitializeViewRoomHandler(container containers.ClientContainer) {
+	db = container
 }
 
 func prepareViewForUUID(id guuid.UUID) {
@@ -20,7 +21,8 @@ func prepareViewForUUID(id guuid.UUID) {
 	if err != nil {
 		ErrorLogger.Println(err)
 	}
-	UUIDResult[id] = res
+
+	db.SaveClient(id, res)
 }
 
 func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
@@ -42,7 +44,7 @@ func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// If we are not ready, deny of service and halt
-	result, present := UUIDResult[view_id]
+	result, present := db.GetValue(view_id)
 	if !present {
 		fmt.Fprintf(w, "Result for %s is not found.", view_id)
 		return
