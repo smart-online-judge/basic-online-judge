@@ -52,5 +52,5 @@ if __name__ == '__main__':
     elif '--unified' in ARGV:
         DIFFERENCE_OPTION = 3
 
-    INPUT_FILES = [codecs.open(f, encoding='cp1252') for f in INPUT_FILES]
+    INPUT_FILES = [codecs.open(f, encoding='utf-8') for f in INPUT_FILES]
     difference_comparison(INPUT_FILES, DIFFERENCE_OPTION)

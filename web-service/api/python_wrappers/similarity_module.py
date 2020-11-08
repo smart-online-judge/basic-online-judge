@@ -78,7 +78,7 @@ if __name__ == '__main__':
     else:
         TOKENIZER_OPTION = 2 # stemming
 
-    FILE_OBJECTS = (codecs.open(join(INPUT_FOLDER, f), encoding='cp1252').read() for f in FILE_NAMES)
+    FILE_OBJECTS = (codecs.open(join(INPUT_FOLDER, f), encoding='utf-8').read() for f in FILE_NAMES)
     RES_MAT = cosine_similarity(FILE_OBJECTS, TOKENIZER_OPTION)
 
     if '--external' in sys.argv:
