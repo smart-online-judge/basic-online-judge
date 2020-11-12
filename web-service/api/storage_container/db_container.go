@@ -2,14 +2,14 @@ package storage_container
 
 import (
 	"database/sql"
-	"fmt"
+	// "fmt"
+	"encoding/json"
 	guuid "github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
 	"path/filepath"
 	utils "web-service/api/utils"
-	"encoding/json"
 )
 
 var (
@@ -61,26 +61,27 @@ func (self *DbClientContainer) Initialize(db_path string) {
 	}
 }
 
+func __temporaryHelper__unmarshal_json_into_2d_slice(result string) [][]float32 {
+	var result_internal [][]float32
+	err := json.Unmarshal([]byte(result), &result_internal)
+	if err != nil {
+		ErrorLogger.Println("Cannot unmarshal")
+	}
+	return result_internal
+}
+
 func (self *DbClientContainer) GetValue(id guuid.UUID) (string, bool) {
 	var result string
 	err := self.getStatement.QueryRow(id.String()).Scan(&result)
 	if err != nil {
+		ErrorLogger.Println(err)
 		return "", false
-	}
-	var result_internal [][]float32
-	err = json.Unmarshal([]byte(result), &result_internal)
-	if err != nil {
-	        return "", false
 	}
 	return result, true
 }
 
-func (self *DbClientContainer) SaveClient(id guuid.UUID, res [][]float32) {
-       result_binary, err := json.Marshal(res)
-	if err != nil {
-	        # TODO
-	}
-	_, err = self.saveStatement.Exec(id.String(), result_binary)
+func (self *DbClientContainer) SaveClient(id guuid.UUID, result_json string) {
+	_, err := self.saveStatement.Exec(id.String(), result_json)
 	if err != nil {
 		ErrorLogger.Println(err)
 	}

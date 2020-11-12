@@ -79,18 +79,6 @@ if __name__ == '__main__':
         TOKENIZER_OPTION = 2 # stemming
 
     FILE_OBJECTS = (codecs.open(join(INPUT_FOLDER, f), encoding='utf-8').read() for f in FILE_NAMES)
-    # FIXME
-    # File "/home/artyom/basic-online-judge/web-service/api/python_wrappers/similarity_module.py", line 87, in <module>
-    # RES_MAT = cosine_similarity(FILE_OBJECTS, TOKENIZER_OPTION)
-    # File "/home/artyom/basic-online-judge/web-service/api/python_wrappers/similarity_module.py", line 38, in cosine_similarity
-    # mat_sparse = lem_vectorizer.fit_transform(file_objects)
-    # File "/home/artyom/python/lib/python3.8/site-packages/sklearn/feature_extraction/text.py", line 1841, in fit_transform
-    # X = super().fit_transform(raw_documents)
-    # File "/home/artyom/python/lib/python3.8/site-packages/sklearn/feature_extraction/text.py", line 1198, in fit_transform
-    # vocabulary, X = self._count_vocab(raw_documents,
-    # File "/home/artyom/python/lib/python3.8/site-packages/sklearn/feature_extraction/text.py", line 1129, in _count_vocab
-    # raise ValueError("empty vocabulary; perhaps the documents only"
-    # ValueError: empty vocabulary; perhaps the documents only contain stop words
     RES_MAT = cosine_similarity(FILE_OBJECTS, TOKENIZER_OPTION)
 
     if '--external' in sys.argv:

@@ -6,5 +6,5 @@ import (
 
 type ClientContainer interface {
 	GetValue(id guuid.UUID) (string, bool)
-	SaveClient(id guuid.UUID, res [][]float32)
+	SaveClient(id guuid.UUID, res string)
 }
