@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	utils "web-service/api/utils"
+	"encoding/json"
 )
 
 var (
@@ -64,15 +65,22 @@ func (self *DbClientContainer) GetValue(id guuid.UUID) (string, bool) {
 	var result string
 	err := self.getStatement.QueryRow(id.String()).Scan(&result)
 	if err != nil {
-		ErrorLogger.Println(err)
 		return "", false
 	}
-
+	var result_internal [][]float32
+	err = json.Unmarshal([]byte(result), &result_internal)
+	if err != nil {
+	        return "", false
+	}
 	return result, true
 }
 
 func (self *DbClientContainer) SaveClient(id guuid.UUID, res [][]float32) {
-	_, err := self.saveStatement.Exec(id.String(), id.String())
+       result_binary, err := json.Marshal(res)
+	if err != nil {
+	        # TODO
+	}
+	_, err = self.saveStatement.Exec(id.String(), result_binary)
 	if err != nil {
 		ErrorLogger.Println(err)
 	}
