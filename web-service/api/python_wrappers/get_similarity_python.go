@@ -2,6 +2,7 @@ package text_similarity
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"path"
@@ -13,6 +14,18 @@ const (
 	python_script_path      = "api/python_wrappers/similarity_module.py"
 	python_interpreter_path = "/usr/bin/python3"
 )
+
+type PythonInternalError struct {
+	ErrMsg string
+}
+
+func NewPythonError(err_msg string) error {
+	return &PythonInternalError{err_msg}
+}
+
+func (e *PythonInternalError) Error() string {
+	return fmt.Sprintf("python scipt error: %v", e.ErrMsg)
+}
 
 func GetPairwiseSimilarity(input_path string, args ...string) (string, error) {
 	var err error
@@ -31,14 +44,14 @@ func GetPairwiseSimilarity(input_path string, args ...string) (string, error) {
 	}
 
 	args = append([]string{execute_path}, args...)
-	var pipe_out bytes.Buffer
+	var pipe_out, pipe_err bytes.Buffer
 	// rely on environment variable for `python`
 	cmd := exec.Command("python", append(args, input_path)...)
 	cmd.Stdout = &pipe_out
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = &pipe_err
 
 	if err = cmd.Run(); err != nil {
-		return "", err
+		return "", NewPythonError(pipe_err.String())
 	}
 
 	return pipe_out.String(), nil

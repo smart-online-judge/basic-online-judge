@@ -3,16 +3,14 @@ from os import listdir as os_listdir, sep as os_sep
 from string import punctuation as string_punctuation
 from os.path import isdir, join, isfile, split, getsize
 from json import dumps as json_dumps
-from datetime import datetime
 from sklearn.feature_extraction.text import TfidfVectorizer
 import matplotlib.pyplot as plt, numpy as np
 
 MAX_ALLOWED_FILES_SIZE = (1 << 20) * 10 # 10Mb
 
 def eprint(*args, **kwargs):
-    print('ERR %s: ' % datetime.now().strftime("%d/%m/%Y %H:%M:%S"), end='', file=sys.stderr)
     print(*args, file=sys.stderr, **kwargs)
-    sys.exit()
+    sys.exit(1)
 
 def cosine_similarity(file_objects, tokenizer_option):
     remove_punct_dict = dict((ord(punct), None) for punct in string_punctuation)

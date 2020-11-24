@@ -21,6 +21,8 @@ func prepareViewForUUID(id guuid.UUID) {
 	if err != nil {
 		ErrorLogger.Println(err)
 	}
+
+	// TODO: Here we may need to somehow handle the err status
 	db.SaveClient(id, res)
 }
 
