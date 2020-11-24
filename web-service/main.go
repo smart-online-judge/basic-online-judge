@@ -41,7 +41,7 @@ func init() {
 
 func setupRoutes() {
 	http.HandleFunc("/upload_files", handlers.UploadFilesHandler)
-	http.HandleFunc("/view", handlers.ViewRoomHandler)
+	http.HandleFunc("/view/", handlers.ViewRoomHandler)
 }
 
 func main() {

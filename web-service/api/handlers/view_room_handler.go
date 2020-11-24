@@ -6,6 +6,7 @@ import (
 	"net/http"
 	nlp "web-service/api/python_wrappers"
 	containers "web-service/api/storage_container"
+	"strings"
 )
 
 var (
@@ -29,18 +30,16 @@ func prepareViewForUUID(id guuid.UUID) {
 func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 	DebugLogger.Println("viewRoom Endpoint hit")
 
-	// Retrieve view UUID.
-	var id_str = req.URL.Query().Get("id")
-	if id_str == "" {
-		ErrorLogger.Println("Invalid url format")
-		http.Error(w, "Incorrect form of url: hostname/view?id=UUID_VALUE expected", http.StatusBadRequest)
+	// Retrieve view id.
+	id_str := strings.TrimPrefix(req.URL.Path, "/view/")
+	if (id_str == "" || strings.Contains(id_str, "/")) {
+		http.Error(w, "Incorrect form of url: hostname/view/{id} expected", http.StatusBadRequest)
 		return
 	}
 
 	view_id, err := guuid.Parse(id_str)
 	if err != nil {
-		ErrorLogger.Println("Invalid UUID value")
-		http.Error(w, "Invalid UUID value", http.StatusBadRequest)
+		http.Error(w, "Invalid id value: UUID4 expected", http.StatusBadRequest)
 		return
 	}
 
