@@ -4,7 +4,7 @@ import (
 	"fmt"
 	guuid "github.com/google/uuid"
 	"net/http"
-	nlp "web-service/api/python_wrappers"
+	nlp "web-service/api/text_similarity"
 	containers "web-service/api/storage_container"
 	"strings"
 )
@@ -18,7 +18,7 @@ func InitializeViewRoomHandler(container containers.ClientContainer) {
 }
 
 func prepareViewForUUID(id guuid.UUID) {
-	res, err := nlp.GetPairwiseSimilarity(UploadFilesDir, "--external")
+	res, err := nlp.GetPairwiseSimilarity(UploadFilesDir)
 	if err != nil {
 		ErrorLogger.Println(err)
 	}
