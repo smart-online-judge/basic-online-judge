@@ -45,7 +45,7 @@ if __name__ == '__main__':
     try:
         syn_mat = get_syntactic_similarity_mat(FILE_PATHS)
         sem_mat = get_semantic_similarity_mat(INPUT_FOLDER)
-        res_mat = get_averaged_similarity_mat(syn_mat, syn_mat)
+        res_mat = get_averaged_similarity_mat(syn_mat, sem_mat)
         print(json_dumps(res_mat))
     except Exception as ex:
         eprint(ex)

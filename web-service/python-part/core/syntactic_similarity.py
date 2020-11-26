@@ -2,9 +2,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from string import punctuation as string_punctuation
 import nltk
 
-remove_punct_dict = dict((ord(punct), None) for punct in string_punctuation)
-
 def get_normalize_filter(type=0):
+    remove_punct_dict = dict((ord(punct), None) for punct in string_punctuation)
     normalize_filter = lambda text: nltk.word_tokenize(
         text.lower().translate(remove_punct_dict))
 
