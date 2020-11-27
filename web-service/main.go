@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	LoggingPath    = "api/logging/main_log.log"
+	LoggingPath    = "logging/main_log.log"
 	UploadFilesDir = "uploaded"
 	DbPath         = "database/meta.db"
 )

@@ -2,7 +2,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from string import punctuation as string_punctuation
 import nltk
 
-def get_normalize_filter(type=0):
+def get_normalize_filter(type=2):
     remove_punct_dict = dict((ord(punct), None) for punct in string_punctuation)
     normalize_filter = lambda text: nltk.word_tokenize(
         text.lower().translate(remove_punct_dict))
@@ -31,7 +31,7 @@ def cosine_similarity(file_objects, normalize_filter):
 
 def get_syntactic_similarity_mat(file_paths):
     try:
-        file_objects = (open(fp, 'rt', encoding='utf-8').read() for fp in file_paths)
+        file_objects = (open(fp, 'rt').read() for fp in file_paths)
         normalize_filter = get_normalize_filter()
 
         return cosine_similarity(file_objects, normalize_filter)

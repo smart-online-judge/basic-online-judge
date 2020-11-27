@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 import sys, numpy as np
 from os import listdir as os_listdir, sep as os_sep, getcwd as os_getcwd
 from os.path import isdir, join, isfile, getsize
