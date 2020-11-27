@@ -1,4 +1,4 @@
-package controllers
+package api
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ var (
 	UploadFilesDir string
 )
 
-func InitializeUploadFilesHandler(upload_files_dir string) {
+func InitializeUploadFilesController(upload_files_dir string) {
 
 	if _, err := os.Stat(upload_files_dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(upload_files_dir, 0777); err != nil {

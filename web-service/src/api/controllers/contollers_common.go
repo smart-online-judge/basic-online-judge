@@ -1,4 +1,4 @@
-package controllers
+package api
 
 import (
 	"log"
@@ -11,7 +11,7 @@ var (
 	DebugLogger   *log.Logger
 )
 
-func InitializeHandlersCommon() {
+func InitializeControllersCommon() {
 	WarningLogger = utils.GetLogger("WARNING: ")
 	ErrorLogger = utils.GetLogger("ERROR: ")
 	DebugLogger = utils.GetLogger("DEBUG: ")

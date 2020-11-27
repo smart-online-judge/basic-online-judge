@@ -1,4 +1,4 @@
-package controllers
+package api
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ var (
 	db containers.ClientContainer
 )
 
-func InitializeViewRoomHandler(container containers.ClientContainer) {
+func InitializeViewRoomController(container containers.ClientContainer) {
 	db = container
 }
 

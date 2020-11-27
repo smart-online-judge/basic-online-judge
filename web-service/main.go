@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	handlers "web-service/src/api/controllers"
+	api "web-service/src/api/controllers"
 	containers "web-service/src/storage_container"
 	utils "web-service/src/utils"
 )
@@ -31,17 +31,17 @@ func init() {
 	container.Initialize(DbPath)
 	DebugLogger.Println("Initialized database container in", DbPath)
 
-	handlers.InitializeHandlersCommon()
-	handlers.InitializeUploadFilesHandler(UploadFilesDir)
+	api.InitializeControllersCommon()
+	api.InitializeUploadFilesController(UploadFilesDir)
 	DebugLogger.Println("Initialized upload Files handler in", UploadFilesDir)
 
-	handlers.InitializeViewRoomHandler(container)
+	api.InitializeViewRoomController(container)
 	DebugLogger.Println("Initialized view Room handler with", container)
 }
 
 func setupRoutes() {
-	http.HandleFunc("/upload_files", handlers.UploadFilesHandler)
-	http.HandleFunc("/view/", handlers.ViewRoomHandler)
+	http.HandleFunc("/upload_files", api.UploadFilesHandler)
+	http.HandleFunc("/view/", api.ViewRoomHandler)
 }
 
 func main() {
