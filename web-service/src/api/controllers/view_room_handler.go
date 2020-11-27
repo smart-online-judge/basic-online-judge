@@ -1,12 +1,12 @@
-package handlers
+package controllers
 
 import (
 	"fmt"
 	guuid "github.com/google/uuid"
 	"net/http"
 	"strings"
-	containers "web-service/api/storage_container"
-	nlp "web-service/api/text_similarity"
+	containers "web-service/src/storage_container"
+	nlp "web-service/src/text_similarity"
 )
 
 var (

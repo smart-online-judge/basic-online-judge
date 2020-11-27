@@ -2,7 +2,7 @@ package storage_container
 
 import (
 	guuid "github.com/google/uuid"
-	utils "web-service/api/utils"
+	utils "web-service/src/utils"
 )
 
 type ResStatus string

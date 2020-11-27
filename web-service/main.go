@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
-	handlers "web-service/api/handlers"
-	containers "web-service/api/storage_container"
-	utils "web-service/api/utils"
+	handlers "web-service/src/api/controllers"
+	containers "web-service/src/storage_container"
+	utils "web-service/src/utils"
 )
 
 const (

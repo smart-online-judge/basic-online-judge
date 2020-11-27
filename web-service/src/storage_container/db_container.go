@@ -2,14 +2,13 @@ package storage_container
 
 import (
 	"database/sql"
-	// "fmt"
 	"encoding/json"
 	guuid "github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
 	"path/filepath"
-	utils "web-service/api/utils"
+	utils "web-service/src/utils"
 )
 
 var (

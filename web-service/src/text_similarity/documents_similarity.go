@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	python_script_path = "python/get_documents_similarity.py"
+	python_script_path = "src/python/get_documents_similarity.py"
 )
 
 type PythonInternalError struct {

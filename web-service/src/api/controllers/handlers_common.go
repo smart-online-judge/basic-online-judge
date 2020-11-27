@@ -1,8 +1,8 @@
-package handlers
+package controllers
 
 import (
 	"log"
-	utils "web-service/api/utils"
+	utils "web-service/src/utils"
 )
 
 var (
