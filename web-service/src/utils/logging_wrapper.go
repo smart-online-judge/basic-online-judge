@@ -21,7 +21,7 @@ func InitializeLogger(path string) {
 		log.Fatal(err)
 	}
 
-	loggingFile, err = os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0666)
+	loggingFile, err = os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}

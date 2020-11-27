@@ -6,6 +6,7 @@ import (
 )
 
 type ResStatus string
+
 const (
 	Success ResStatus = "Success"
 	Error   ResStatus = "Error"
@@ -16,5 +17,5 @@ type ClientContainer interface {
 	GetResValue(id guuid.UUID) (*utils.Pair, bool)
 	SavePendingClient(id guuid.UUID, res string)
 	SaveErrorClient(id guuid.UUID, res string)
-	SaveResClient(id guuid.UUID, res string)
+	SaveSuccessClient(id guuid.UUID, res string)
 }

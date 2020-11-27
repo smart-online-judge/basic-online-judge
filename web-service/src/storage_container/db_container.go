@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 	utils "web-service/src/utils"
 )
 
@@ -16,14 +17,24 @@ var (
 )
 
 type DbClientContainer struct {
-	dbConnection          *sql.DB
-	createClientStatement *sql.Stmt
-	updateClientStatement *sql.Stmt
-	getResStatement       *sql.Stmt
+	dbConnection *sql.DB
+
+	createClientStmt     *sql.Stmt
+	updateClientResStmt  *sql.Stmt
+	updateClientTimeStmt *sql.Stmt
+	getClientResStmt     *sql.Stmt
 }
 
 func NewDB() *DbClientContainer {
 	return new(DbClientContainer)
+}
+
+func (self *DbClientContainer) Close() error {
+	self.createClientStmt.Close()
+	self.updateClientResStmt.Close()
+	self.getClientResStmt.Close()
+	err := self.dbConnection.Close()
+	return err
 }
 
 func (self *DbClientContainer) Initialize(db_path string) {
@@ -43,8 +54,7 @@ func (self *DbClientContainer) Initialize(db_path string) {
 		`CREATE TABLE IF NOT EXISTS CLIENTS (
 			id INTEGER PRIMARY KEY,
 			uuid VARCHAR,
-			dir_path VARCHAR,
-			acessed_time TIMESTAMP,
+			creation_time INTEGER,
 			status CHARACTER,
 			result TEXT
 	)`)
@@ -54,19 +64,19 @@ func (self *DbClientContainer) Initialize(db_path string) {
 		ErrorLogger.Fatal(err)
 	}
 
-	self.createClientStatement, err = self.dbConnection.Prepare(
-		"INSERT INTO CLIENTS (uuid, status, result) VALUES (?, ?, ?)")
+	self.createClientStmt, err = self.dbConnection.Prepare(
+		"INSERT INTO CLIENTS (uuid, creation_time, status, result) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		ErrorLogger.Fatal(err)
 	}
 
-	self.updateClientStatement, err = self.dbConnection.Prepare(
+	self.updateClientResStmt, err = self.dbConnection.Prepare(
 		"UPDATE CLIENTS SET status = ?, result = ? WHERE uuid = ?;")
 	if err != nil {
 		ErrorLogger.Fatal(err)
 	}
 
-	self.getResStatement, err = self.dbConnection.Prepare(
+	self.getClientResStmt, err = self.dbConnection.Prepare(
 		"SELECT status, result FROM CLIENTS WHERE uuid == ?")
 	if err != nil {
 		ErrorLogger.Fatal(err)
@@ -85,7 +95,7 @@ func __temporaryHelper__unmarshal_json_into_2d_slice(result string) [][]float32 
 func (self *DbClientContainer) GetResValue(id guuid.UUID) (*utils.Pair, bool) {
 	var result string
 	var status ResStatus
-	err := self.getResStatement.QueryRow(id.String()).Scan(&status, &result)
+	err := self.getClientResStmt.QueryRow(id.String()).Scan(&status, &result)
 	if err != nil {
 		ErrorLogger.Println(err)
 		return nil, false
@@ -95,8 +105,9 @@ func (self *DbClientContainer) GetResValue(id guuid.UUID) (*utils.Pair, bool) {
 }
 
 func (self *DbClientContainer) SavePendingClient(id guuid.UUID, msg string) {
-	_, err := self.createClientStatement.Exec(
+	_, err := self.createClientStmt.Exec(
 		id.String(),
+		time.Now().Unix(),
 		Pending,
 		msg)
 
@@ -106,7 +117,7 @@ func (self *DbClientContainer) SavePendingClient(id guuid.UUID, msg string) {
 }
 
 func (self *DbClientContainer) SaveErrorClient(id guuid.UUID, err_msg string) {
-	_, err := self.updateClientStatement.Exec(
+	_, err := self.updateClientResStmt.Exec(
 		Error,
 		err_msg,
 		id.String())
@@ -116,8 +127,8 @@ func (self *DbClientContainer) SaveErrorClient(id guuid.UUID, err_msg string) {
 	}
 }
 
-func (self *DbClientContainer) SaveResClient(id guuid.UUID, result_json string) {
-	_, err := self.updateClientStatement.Exec(
+func (self *DbClientContainer) SaveSuccessClient(id guuid.UUID, result_json string) {
+	_, err := self.updateClientResStmt.Exec(
 		Success,
 		result_json,
 		id.String())

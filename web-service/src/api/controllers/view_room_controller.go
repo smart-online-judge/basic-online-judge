@@ -18,14 +18,14 @@ func InitializeViewRoomController(container containers.ClientContainer) {
 }
 
 func prepareViewForUUID(id guuid.UUID) {
-	db.SavePendingClient(id, "Analyzing the input files")
+	db.SavePendingClient(id, "")
 
 	res, err := nlp.GetPairwiseSimilarity(UploadFilesDir)
 	if err != nil {
 		db.SaveErrorClient(id, err.Error())
 		ErrorLogger.Println(err)
 	} else {
-		db.SaveResClient(id, res)
+		db.SaveSuccessClient(id, res)
 	}
 }
 
