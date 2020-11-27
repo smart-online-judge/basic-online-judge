@@ -3,15 +3,15 @@ package main
 import (
 	"log"
 	"net/http"
+	s3support "web-service/s3support"
 	api "web-service/src/api/controllers"
 	containers "web-service/src/storage_container"
 	utils "web-service/src/utils"
 )
 
 const (
-	LoggingPath    = "logging/main_log.log"
-	UploadFilesDir = "uploaded"
-	DbPath         = "database/meta.db"
+	LoggingPath = "logging/main_log.log"
+	DbPath      = "database/meta.db"
 )
 
 var (
@@ -32,11 +32,13 @@ func init() {
 	DebugLogger.Println("Initialized database container in", DbPath)
 
 	api.InitializeControllersCommon()
-	api.InitializeUploadFilesController(UploadFilesDir)
-	DebugLogger.Println("Initialized upload Files handler in", UploadFilesDir)
-
+	api.InitializeUploadFilesController()
+	DebugLogger.Println("Initialized upload Files handler in")
 	api.InitializeViewRoomController(container)
 	DebugLogger.Println("Initialized view Room handler with", container)
+
+	s3support.InitializeS3Support()
+	DebugLogger.Println("Initialized S3Support")
 }
 
 func setupRoutes() {
