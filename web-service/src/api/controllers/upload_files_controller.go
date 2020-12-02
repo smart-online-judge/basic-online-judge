@@ -9,53 +9,74 @@ import (
 	"path"
 
 	config "web-service/src/config"
-
 	guuid "github.com/google/uuid"
 )
 
+var (
+	maxAllowedFilesSize int64
+)
+
+func initializeUploadFilesController() {
+	maxAllowedFilesSize = int64(config.Internal.MaxAllowedFilesSize)
+
+	var err error
+	if _, err = os.Stat(uploadFilesDir); os.IsNotExist(err) {
+		err = os.MkdirAll(uploadFilesDir, os.ModePerm)
+	}
+	if err != nil {
+		errorLogger.Fatalln(err)
+	}
+}
+
 func UploadFilesHandler(w http.ResponseWriter, req *http.Request) {
-	DebugLogger.Println("uploadFiles Endpoint hit")
+	debugLogger.Println("uploadFiles Endpoint hit")
 
 	if req.Method != "POST" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		WarningLogger.Printf("%s request type isn't supported\n", req.Method)
+		warningLogger.Printf("%s request type isn't supported\n", req.Method)
 		return
 	}
 
 	var err error
-	const _20M = (1 << 20) * 20
-	if err = req.ParseMultipartForm(_20M); nil != err {
-		http.Error(w, "507 - Maximum upload size limit exceeded!", http.StatusInsufficientStorage)
+	if err = req.ParseMultipartForm(maxAllowedFilesSize); nil != err {
+		http.Error(w, "Unable to parse input files", http.StatusPreconditionFailed)
+		errorLogger.Println(err)
 		return
 	}
 
 	id := guuid.New()
-	os.Mkdir(path.Join(config.UploadFilesDir, id.String()), os.ModePerm)
+	err = os.Mkdir(path.Join(uploadFilesDir, id.String()), os.ModePerm)
+	if err != nil {
+		http.Error(w, "Unable to store input files", http.StatusInternalServerError)
+		errorLogger.Println(err)
+		return
+	}
 
 	fhs := req.MultipartForm.File["givenFiles"]
 	for _, fh := range fhs {
 		var infile multipart.File
 		if infile, err = fh.Open(); nil != err {
-			ErrorLogger.Println(err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			errorLogger.Println(err)
 			return
 		}
 		defer infile.Close()
 
 		var outfile *os.File
-		if outfile, err = os.Create(path.Join(config.UploadFilesDir, id.String(), fh.Filename)); nil != err {
+		if outfile, err = os.Create(path.Join(uploadFilesDir, id.String(), fh.Filename)); nil != err {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			ErrorLogger.Println(err)
+			errorLogger.Println(err)
 			return
 		}
 
 		// 20M buffer copy
 		if _, err = io.Copy(outfile, infile); nil != err {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			ErrorLogger.Println(err)
+			errorLogger.Println(err)
 			return
 		}
 	}
 	go prepareViewForUUID(id)
 	// Report a link to the personal room
-	fmt.Fprintf(w, "View room id= %v", id)
+	fmt.Fprintf(w, "You can view the result of the file analyses at the view/%v\n", id)
 }

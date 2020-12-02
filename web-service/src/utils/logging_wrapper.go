@@ -3,35 +3,42 @@ package utils
 import (
 	"log"
 	"os"
-	"path/filepath"
+	"path"
+
+	config "web-service/src/config"
+)
+
+const (
+	defaultLoggingFileName = "main_log.log"
 )
 
 var (
-	WarningLogger *log.Logger
-	ErrorLogger   *log.Logger
-	DebugLogger   *log.Logger
-	loggingFile   *os.File
+	ErrorLogger        *log.Logger
+	WarningLogger      *log.Logger
+	DebugLogger        *log.Logger
+	defaultloggingFile *os.File
 )
 
-func InitializeLogger(path string) {
-	dir, _ := filepath.Split(path)
+func InitializeLogger() error {
+	dir := config.Internal.LoggingDir
 
 	var err error
 	if err = os.MkdirAll(dir, 0777); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	loggingFile, err = os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
+	file, err := os.OpenFile(
+		path.Join(dir, defaultLoggingFileName),
+		os.O_CREATE|os.O_TRUNC|os.O_WRONLY,
+		0666)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	DebugLogger = log.New(loggingFile, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
-	DebugLogger.Println("Initialized logging to", path)
-}
-
-func GetLogger(prefix string) *log.Logger {
-	return log.New(loggingFile, prefix, log.Ldate|log.Ltime|log.Lshortfile)
+	ErrorLogger = log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	WarningLogger = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	DebugLogger = log.New(file, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
+	return nil
 }
 
 // Get a logger with custom storage path

@@ -2,18 +2,12 @@ package storage_container
 
 import (
 	"database/sql"
-	"encoding/json"
 	guuid "github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
 	utils "web-service/src/utils"
-)
-
-var (
-	ErrorLogger *log.Logger
 )
 
 type DbClientContainer struct {
@@ -37,17 +31,15 @@ func (self *DbClientContainer) Close() error {
 	return err
 }
 
-func (self *DbClientContainer) Initialize(db_path string) {
-	ErrorLogger = utils.GetLogger("ERROR: ")
+func (self *DbClientContainer) Initialize(db_path string) error {
 	dir, _ := filepath.Split(db_path)
-
-	var err error
-	if err = os.MkdirAll(dir, 0777); err != nil {
-		ErrorLogger.Fatal(err)
+	if err := os.MkdirAll(dir, 0777); err != nil {
+		return err
 	}
 
+	var err error
 	if self.dbConnection, err = sql.Open("sqlite3", db_path); err != nil {
-		ErrorLogger.Fatal(err)
+		return err
 	}
 
 	_, err = self.dbConnection.Exec(
@@ -61,79 +53,60 @@ func (self *DbClientContainer) Initialize(db_path string) {
 	// status - success, error, pending
 	// result - JSON error_msg or computed result
 	if err != nil {
-		ErrorLogger.Fatal(err)
+		return err
 	}
 
 	self.createClientStmt, err = self.dbConnection.Prepare(
 		"INSERT INTO CLIENTS (uuid, creation_time, status, result) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		ErrorLogger.Fatal(err)
+		return err
 	}
 
 	self.updateClientResStmt, err = self.dbConnection.Prepare(
 		"UPDATE CLIENTS SET status = ?, result = ? WHERE uuid = ?;")
 	if err != nil {
-		ErrorLogger.Fatal(err)
+		return err
 	}
 
 	self.getClientResStmt, err = self.dbConnection.Prepare(
 		"SELECT status, result FROM CLIENTS WHERE uuid == ?")
 	if err != nil {
-		ErrorLogger.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
-func __temporaryHelper__unmarshal_json_into_2d_slice(result string) [][]float32 {
-	var result_internal [][]float32
-	err := json.Unmarshal([]byte(result), &result_internal)
-	if err != nil {
-		ErrorLogger.Println("Cannot unmarshal")
-	}
-	return result_internal
-}
-
-func (self *DbClientContainer) GetResValue(id guuid.UUID) (*utils.Pair, bool) {
+func (self *DbClientContainer) GetResValue(id guuid.UUID) (*utils.Pair, error) {
 	var result string
 	var status ResStatus
 	err := self.getClientResStmt.QueryRow(id.String()).Scan(&status, &result)
 	if err != nil {
-		ErrorLogger.Println(err)
-		return nil, false
+		return nil, err
 	}
 
-	return &utils.Pair{status, result}, true
+	return &utils.Pair{status, result}, err
 }
 
-func (self *DbClientContainer) SavePendingClient(id guuid.UUID, msg string) {
+func (self *DbClientContainer) SavePendingClient(id guuid.UUID, msg string) error {
 	_, err := self.createClientStmt.Exec(
-		id.String(),
-		time.Now().Unix(),
-		Pending,
-		msg)
+		id.String(), time.Now().Unix(), Pending, msg)
 
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
+	return err
 }
 
-func (self *DbClientContainer) SaveErrorClient(id guuid.UUID, err_msg string) {
+func (self *DbClientContainer) SaveErrorClient(id guuid.UUID, err_msg string) error {
 	_, err := self.updateClientResStmt.Exec(
-		Error,
-		err_msg,
-		id.String())
+		Error, err_msg, id.String())
 
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
+	return err
 }
 
-func (self *DbClientContainer) SaveSuccessClient(id guuid.UUID, result_json string) {
+func (self *DbClientContainer) SaveSuccessClient(id guuid.UUID, result_json string) error {
 	_, err := self.updateClientResStmt.Exec(
 		Success,
 		result_json,
 		id.String())
 
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
+	return err
 }

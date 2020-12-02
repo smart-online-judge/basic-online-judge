@@ -3,42 +3,41 @@ package main
 import (
 	"log"
 	"net/http"
-	s3support "web-service/s3support"
+	//s3support "web-service/src/s3support"
 	api "web-service/src/api/controllers"
+	config "web-service/src/config"
 	containers "web-service/src/storage_container"
 	utils "web-service/src/utils"
 )
 
 const (
-	LoggingPath = "logging/main_log.log"
-	DbPath      = "database/meta.db"
+	configPath = "config/main_config.json"
 )
 
 var (
-	ErrorLogger *log.Logger
-	DebugLogger *log.Logger
-	container   *containers.DbClientContainer
+	errorLogger *log.Logger
+	debugLogger *log.Logger
 )
 
 func init() {
-	utils.InitializeLogger(LoggingPath)
+	if err := config.ReadConfig(configPath); err != nil {
+		log.Fatalln("Unable to read program config from", configPath, err)
+	}
 
-	ErrorLogger = utils.GetLogger("ERROR: ")
-	DebugLogger = utils.GetLogger("DEBUG: ")
+	if err := utils.InitializeLogger(); err != nil {
+		log.Fatalln("Unable to initialize logging at", config.Internal.LoggingDir, err)
+	}
 
-	container = containers.NewDB()
+	errorLogger = utils.ErrorLogger
+	debugLogger = utils.DebugLogger
 
-	container.Initialize(DbPath)
-	DebugLogger.Println("Initialized database container in", DbPath)
+	db := containers.NewDB()
+	if err := db.Initialize(config.Internal.DbPath); err != nil {
+		errorLogger.Fatalln("Unable to open db at", config.Internal.DbPath, err)
+	}
 
-	api.InitializeControllersCommon()
-	api.InitializeUploadFilesController()
-	DebugLogger.Println("Initialized upload Files handler in")
-	api.InitializeViewRoomController(container)
-	DebugLogger.Println("Initialized view Room handler with", container)
-
-	s3support.InitializeS3Support()
-	DebugLogger.Println("Initialized S3Support")
+	api.InitializeControllers(db)
+	//s3support.InitializeS3Support()
 }
 
 func setupRoutes() {
@@ -49,6 +48,6 @@ func setupRoutes() {
 func main() {
 	setupRoutes()
 
-	DebugLogger.Println("Starting fair online judge service on 8080 port")
-	ErrorLogger.Fatal(http.ListenAndServe(":8080", nil))
+	debugLogger.Println("Starting fair online judge service on", config.Server.Port, "port")
+	errorLogger.Fatalln(http.ListenAndServe(config.Server.Port, nil))
 }

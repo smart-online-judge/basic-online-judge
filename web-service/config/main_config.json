@@ -1,0 +1,21 @@
+{
+    "server":{
+       "Port":":8080"
+    },
+
+    "internal":{
+       "UploadFilesDir":"tmp",
+       "MaxAllowedFilesSize":20971520,
+       "LoggingDir":"logging",
+       "DbPath":"database/meta.db",
+       "PythonScriptPath":"src/python/get_documents_similarity.py"
+    },
+
+    "minio":{
+       "ConnectionString":"localhost:9000",
+       "AccessKeyID":"minioadmin",
+       "SecretAccessKey":"minioadmin",
+       "UseSSL":false,
+       "BucketName":"user-files"
+    }
+}

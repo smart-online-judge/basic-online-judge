@@ -8,10 +8,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-)
 
-const (
-	python_script_path = "src/python/get_documents_similarity.py"
+	config "web-service/src/config"
 )
 
 type PythonInternalError struct {
@@ -33,8 +31,8 @@ func GetPairwiseSimilarity(input_path string, args ...string) (string, error) {
 		return "", err
 	}
 
-	var execute_path = python_script_path
-	if !strings.HasPrefix(python_script_path, string(os.PathSeparator)) {
+	var execute_path = config.Internal.PythonScriptPath
+	if !strings.HasPrefix(execute_path, string(os.PathSeparator)) {
 		execute_path = path.Join(cur_path, execute_path)
 	}
 
@@ -44,6 +42,7 @@ func GetPairwiseSimilarity(input_path string, args ...string) (string, error) {
 
 	args = append([]string{execute_path}, args...)
 	var pipe_out, pipe_err bytes.Buffer
+
 	// rely on environment variable for `python`
 	cmd := exec.Command("python", append(args, input_path)...)
 	cmd.Stdout = &pipe_out

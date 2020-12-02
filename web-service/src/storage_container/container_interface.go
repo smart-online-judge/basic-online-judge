@@ -14,8 +14,8 @@ const (
 )
 
 type ClientContainer interface {
-	GetResValue(id guuid.UUID) (*utils.Pair, bool)
-	SavePendingClient(id guuid.UUID, res string)
-	SaveErrorClient(id guuid.UUID, res string)
-	SaveSuccessClient(id guuid.UUID, res string)
+	GetResValue(id guuid.UUID) (*utils.Pair, error)
+	SavePendingClient(id guuid.UUID, res string) error
+	SaveErrorClient(id guuid.UUID, res string) error
+	SaveSuccessClient(id guuid.UUID, res string) error
 }

@@ -7,46 +7,47 @@ import (
 	"os"
 	"path"
 	"strings"
-	s3support "web-service/s3support"
-	config "web-service/src/config"
-	containers "web-service/src/storage_container"
-	nlp "web-service/src/text_similarity"
 
 	guuid "github.com/google/uuid"
+	//s3support "web-service/src/s3support"
+	containers "web-service/src/storage_container"
+	nlp "web-service/src/text_similarity"
 )
 
 var (
 	db containers.ClientContainer
 )
 
-func InitializeViewRoomController(container containers.ClientContainer) {
+func initializeViewRoomController(container containers.ClientContainer) {
 	db = container
 }
 
 func prepareViewForUUID(id guuid.UUID) {
 	db.SavePendingClient(id, "")
-	res, err := nlp.GetPairwiseSimilarity(config.UploadFilesDir)
+
+	var client_dir = path.Join(uploadFilesDir, id.String())
+	res, err := nlp.GetPairwiseSimilarity(client_dir)
 	if err != nil {
 		db.SaveErrorClient(id, err.Error())
-		ErrorLogger.Println(err)
+		errorLogger.Println(err)
 	} else {
 		db.SaveSuccessClient(id, res)
-		files, err := ioutil.ReadDir(path.Join(config.UploadFilesDir, id.String()))
+		files, err := ioutil.ReadDir(client_dir)
 		if err != nil {
-			ErrorLogger.Println(err)
+			errorLogger.Println(err)
 		}
 		for _, file := range files {
-			filePath := path.Join(config.UploadFilesDir, id.String(), file.Name())
+			filePath := path.Join(client_dir, file.Name())
 			file_, _ := os.Open(filePath)
-			err = s3support.StoreFileByUUID(id, file_, file.Name())
+			//s3support.StoreFileByUUID(id, file_, file.Name())
 			defer file_.Close()
 		}
 	}
-	os.RemoveAll(path.Join(config.UploadFilesDir, id.String()))
+	os.RemoveAll(path.Join(uploadFilesDir, id.String()))
 }
 
 func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
-	DebugLogger.Println("viewRoom Endpoint hit")
+	debugLogger.Println("viewRoom Endpoint hit")
 
 	// Retrieve view id.
 	id_str := strings.TrimPrefix(req.URL.Path, "/view/")
@@ -62,8 +63,8 @@ func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// If we are not ready, deny of service and halt
-	result, present := db.GetResValue(view_id)
-	if !present {
+	result, err := db.GetResValue(view_id)
+	if err != nil {
 		fmt.Fprintf(w, "Result for %s is not found.", view_id)
 	} else if result.First == containers.Error {
 		fmt.Fprintln(w, "Error encountered when analyzing the input, please reupload the files.")
