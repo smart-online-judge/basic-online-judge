@@ -39,8 +39,7 @@ func prepareViewForUUID(id guuid.UUID) {
 			filePath := path.Join(config.UploadFilesDir, id.String(), file.Name())
 			file_, _ := os.Open(filePath)
 			err = s3support.StoreFileByUUID(id, file_, file.Name())
-			file_.Close()
-			os.Remove(filePath)
+			defer file_.Close()
 		}
 	}
 	os.RemoveAll(path.Join(config.UploadFilesDir, id.String()))
