@@ -10,15 +10,20 @@ package s3support
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"path"
+	"strings"
+	"time"
+
+	config "web-service/src/config"
+	utils "web-service/src/utils"
 
 	guuid "github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	config "web-service/src/config"
-	utils "web-service/src/utils"
 )
 
 const (
@@ -117,4 +122,45 @@ func LoadFileByUUID(id guuid.UUID, fileName string) io.Reader {
 	} else {
 		return v
 	}
+}
+
+func listFilesByUUID(id guuid.UUID) []string {
+	var res []string
+	objectCh := minioClient.ListObjects(rootCtx, bucketName, minio.ListObjectsOptions{
+		Prefix:    id.String(),
+		Recursive: true,
+	})
+	for object := range objectCh {
+		if object.Err != nil {
+			errorLogger.Println(object.Err)
+			return res
+		}
+		nextFileName := strings.Split(object.Key, "/")
+		res = append(res, nextFileName[1])
+	}
+	return res
+}
+
+func PrepareViewFileURL(id guuid.UUID, fileName string) *url.URL {
+	fileNames := listFilesByUUID(id)
+	fmt.Println(fileNames)
+	ok := false
+	for _, val := range fileNames {
+		if fileName == val {
+			ok = true
+			break
+		}
+	}
+	if ok == false {
+		return nil
+	}
+	reqParams := make(url.Values)
+	val := fmt.Sprintf("attachment; filename=\"%s\"", fileName)
+	reqParams.Set("response-content-disposition", val)
+	presignedURL, err := minioClient.PresignedGetObject(rootCtx, bucketName, path.Join(id.String(), fileName), time.Second*24*60*60, reqParams)
+	if err != nil {
+		errorLogger.Println(err)
+		return nil
+	}
+	return presignedURL
 }

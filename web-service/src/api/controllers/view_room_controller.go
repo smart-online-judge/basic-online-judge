@@ -8,10 +8,11 @@ import (
 	"path"
 	"strings"
 
-	guuid "github.com/google/uuid"
 	s3support "web-service/src/s3support"
 	containers "web-service/src/storage_container"
 	nlp "web-service/src/text_similarity"
+
+	guuid "github.com/google/uuid"
 )
 
 var (
@@ -60,7 +61,6 @@ func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// If we are not ready, deny of service and halt
 	result, err := db.GetResValue(view_id)
 	if err != nil {
 		fmt.Fprintf(w, "Result for %s is not found.", view_id)
