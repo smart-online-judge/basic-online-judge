@@ -89,6 +89,25 @@ func StoreFileByUUID(id guuid.UUID, file io.Reader, fileName string) error {
 	return err
 }
 
+func UploadFsFileByUUID(id guuid.UUID, clientDir string, fileName string) error {
+	objectName := path.Join(id.String(), "/", fileName)
+	filePath := path.Join(clientDir, fileName)
+
+	_, err := minioClient.FPutObject(
+		rootCtx, bucketName, objectName, filePath,
+		minio.PutObjectOptions{
+			ContentType:     "application/text",
+			ContentEncoding: "utf-8"},
+	)
+
+	if err != nil {
+		errorLogger.Println(err)
+	} else {
+		debugLogger.Printf("PutObject %s to %s success\n", filePath, objectName)
+	}
+	return err
+}
+
 func LoadFileByUUID(id guuid.UUID, fileName string) io.Reader {
 	objectName := path.Join(id.String(), "/", fileName)
 	v, err := minioClient.GetObject(rootCtx, bucketName, objectName, minio.GetObjectOptions{})

@@ -33,7 +33,7 @@ func (self *DbClientContainer) Close() error {
 
 func (self *DbClientContainer) Initialize(db_path string) error {
 	dir, _ := filepath.Split(db_path)
-	if err := os.MkdirAll(dir, 0777); err != nil {
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
 	}
 

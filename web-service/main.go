@@ -3,9 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
-	//s3support "web-service/src/s3support"
+
 	api "web-service/src/api/controllers"
 	config "web-service/src/config"
+	s3support "web-service/src/s3support"
 	containers "web-service/src/storage_container"
 	utils "web-service/src/utils"
 )
@@ -19,7 +20,7 @@ var (
 	debugLogger *log.Logger
 )
 
-func init() {
+func configure() {
 	if err := config.ReadConfig(configPath); err != nil {
 		log.Fatalln("Unable to read program config from", configPath, err)
 	}
@@ -37,7 +38,7 @@ func init() {
 	}
 
 	api.InitializeControllers(db)
-	//s3support.InitializeS3Support()
+	s3support.InitializeS3Support()
 }
 
 func setupRoutes() {
@@ -46,8 +47,10 @@ func setupRoutes() {
 }
 
 func main() {
+	configure()
+
 	setupRoutes()
 
-	debugLogger.Println("Starting fair online judge service on", config.Server.Port, "port")
+	debugLogger.Println("Starting fair online judge service on", config.Server.Port)
 	errorLogger.Fatalln(http.ListenAndServe(config.Server.Port, nil))
 }

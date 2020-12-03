@@ -8,16 +8,16 @@ import (
 	"os"
 	"path"
 
-	config "web-service/src/config"
 	guuid "github.com/google/uuid"
+	config "web-service/src/config"
 )
 
 var (
-	maxAllowedFilesSize int64
+	maxAllowedFilesSize int
 )
 
 func initializeUploadFilesController() {
-	maxAllowedFilesSize = int64(config.Internal.MaxAllowedFilesSize)
+	maxAllowedFilesSize = config.Internal.MaxAllowedFilesSize
 
 	var err error
 	if _, err = os.Stat(uploadFilesDir); os.IsNotExist(err) {
@@ -38,7 +38,7 @@ func UploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var err error
-	if err = req.ParseMultipartForm(maxAllowedFilesSize); nil != err {
+	if err = req.ParseMultipartForm(int64(maxAllowedFilesSize)); nil != err {
 		http.Error(w, "Unable to parse input files", http.StatusPreconditionFailed)
 		errorLogger.Println(err)
 		return

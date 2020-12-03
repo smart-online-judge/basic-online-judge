@@ -21,16 +21,14 @@ var (
 
 func InitializeLogger() error {
 	dir := config.Internal.LoggingDir
-
-	var err error
-	if err = os.MkdirAll(dir, 0777); err != nil {
+	if err := os.MkdirAll(config.Internal.LoggingDir, os.ModePerm); err != nil {
 		return err
 	}
 
 	file, err := os.OpenFile(
 		path.Join(dir, defaultLoggingFileName),
 		os.O_CREATE|os.O_TRUNC|os.O_WRONLY,
-		0666)
+		os.ModePerm)
 	if err != nil {
 		return err
 	}
