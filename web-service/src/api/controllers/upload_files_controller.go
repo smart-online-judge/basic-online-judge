@@ -52,7 +52,7 @@ func UploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fhs := req.MultipartForm.File["givenFiles"]
+	fhs := req.MultipartForm.File["file_uploads"]
 	for _, fh := range fhs {
 		var infile multipart.File
 		if infile, err = fh.Open(); nil != err {
@@ -69,7 +69,6 @@ func UploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// 20M buffer copy
 		if _, err = io.Copy(outfile, infile); nil != err {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			errorLogger.Println(err)

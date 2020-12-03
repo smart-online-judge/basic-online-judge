@@ -1,5 +1,5 @@
 var input = document.querySelector("input");
-var preview = document.querySelector(".preview");
+var preview = document.querySelector(".files_preview");
 
 input.style.opacity = 0;
 input.addEventListener("change", updateImageDisplay);
@@ -40,7 +40,6 @@ function validFileType(file) {
             return true;
         }
     }
-
     return false;
 }
 
