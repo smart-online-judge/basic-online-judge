@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"log"
+	"net/http"
 
 	config "web-service/src/config"
 	containers "web-service/src/storage_container"
@@ -24,4 +26,20 @@ func InitializeControllers(container containers.ClientContainer) {
 
 	initializeViewRoomController(container)
 	initializeUploadFilesController()
+}
+
+func compriseMsg(w http.ResponseWriter, body map[string]interface{}, status int) error {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	err := json.NewEncoder(w).Encode(body)
+	return err
+}
+
+func logMsg(logger *log.Logger, body map[string]interface{}, status int) {
+	if status != http.StatusOK {
+		logger.Println(body["Error"])
+	} else {
+		logger.Println(body["Result"])
+	}
 }

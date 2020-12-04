@@ -11,36 +11,54 @@ import (
 )
 
 func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
+	body := make(map[string]interface{})
+
 	if req.Method != "GET" {
-		msg := "Only accepts GET"
-		debugLogger.Println(msg)
-		http.Error(w, msg, http.StatusMethodNotAllowed)
+		body["Error"] = fmt.Sprintf("%s request type isn't supported", req.Method)
+
+		compriseMsg(w, body, http.StatusMethodNotAllowed)
+		logMsg(warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
+
 	urlParsedQuery, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
-		errorLogger.Println(err)
-		http.Error(w, "Unable to parse input files", http.StatusUnprocessableEntity)
+		body["Message"] = "Unable to parse input url"
+		body["Error"] = err.Error()
+
+		compriseMsg(w, body, http.StatusUnprocessableEntity)
+		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
 		return
 	}
-	id_str := urlParsedQuery.Get("id")
-	fileName := urlParsedQuery.Get("name")
+
+	id_str, fileName := urlParsedQuery.Get("id"), urlParsedQuery.Get("name")
 	id, err := guuid.Parse(id_str)
 	if err != nil {
-		errorLogger.Println(err)
-		http.Error(w, "Please provide a valid UUID4", http.StatusUnprocessableEntity)
+		body["Message"] = fmt.Sprintf("Invalid id(%s) value: UUID4 expected", id_str)
+		body["Error"] = err.Error()
+
+		compriseMsg(w, body, http.StatusUnprocessableEntity)
+		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
+		return
+
+	} else if fileName == "" {
+		body["Error"] = fmt.Sprintf("Invalid filename(%s)", fileName)
+
+		compriseMsg(w, body, http.StatusUnprocessableEntity)
+		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
 		return
 	}
 
 	presignedURL := s3support.PrepareViewFileURL(id, fileName)
 	if presignedURL == nil {
-		msg := fmt.Sprintf("Unable to find a file with such name %s", fileName)
-		errorLogger.Println(msg)
-		http.Error(w, msg, http.StatusInternalServerError)
+		body["Error"] = fmt.Sprintf("Unable to find a file with such name %s", fileName)
+
+		compriseMsg(w, body, http.StatusAccepted)
+		logMsg(warningLogger, body, http.StatusAccepted)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	jsonEncoded := fmt.Sprintf("{\"link\": \"%s\"}", presignedURL.String())
-	w.Write([]byte(jsonEncoded))
+	body["Link"] = presignedURL.String()
+	compriseMsg(w, body, http.StatusOK)
+	logMsg(debugLogger, body, http.StatusOK)
 }

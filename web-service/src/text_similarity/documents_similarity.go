@@ -21,7 +21,7 @@ func NewPythonError(err_msg string) error {
 }
 
 func (e *PythonInternalError) Error() string {
-	return fmt.Sprintf("python scipt error: %v", e.ErrMsg)
+	return fmt.Sprintf("NLP error: %v", e.ErrMsg)
 }
 
 func GetPairwiseSimilarity(input_path string, args ...string) (string, error) {

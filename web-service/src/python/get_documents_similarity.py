@@ -7,7 +7,7 @@ from os.path import isdir, join, isfile, getsize
 from json import dumps as json_dumps
 
 def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+    print(*args, file=sys.stderr, end='', **kwargs)
     sys.exit(1)
 
 MAX_ALLOWED_FILES_SIZE = (1 << 20) * 10 # 10Mb
@@ -49,6 +49,6 @@ if __name__ == '__main__':
         syn_mat = get_syntactic_similarity_mat(FILE_PATHS)
         sem_mat = get_semantic_similarity_mat(INPUT_FOLDER)
         res_mat = get_averaged_similarity_mat(syn_mat, sem_mat)
-        print(json_dumps(res_mat))
+        print(json_dumps(res_mat), end='')
     except Exception as ex:
         eprint(ex)

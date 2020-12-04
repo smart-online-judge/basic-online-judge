@@ -124,7 +124,7 @@ func LoadFileByUUID(id guuid.UUID, fileName string) io.Reader {
 	}
 }
 
-func listFilesByUUID(id guuid.UUID) []string {
+func ListFilesByUUID(id guuid.UUID) []string {
 	var res []string
 	objectCh := minioClient.ListObjects(rootCtx, bucketName, minio.ListObjectsOptions{
 		Prefix:    id.String(),
@@ -142,7 +142,7 @@ func listFilesByUUID(id guuid.UUID) []string {
 }
 
 func PrepareViewFileURL(id guuid.UUID, fileName string) *url.URL {
-	fileNames := listFilesByUUID(id)
+	fileNames := ListFilesByUUID(id)
 	ok := false
 	for _, val := range fileNames {
 		if fileName == val {

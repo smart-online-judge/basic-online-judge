@@ -47,28 +47,61 @@ func prepareViewForUUID(id guuid.UUID) {
 
 func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 	debugLogger.Println("viewRoom Endpoint hit")
+	body := make(map[string]interface{})
 
+	if req.Method != "GET" {
+		body["Error"] = fmt.Sprintf("%s request type isn't supported", req.Method)
+
+		compriseMsg(w, body, http.StatusMethodNotAllowed)
+		logMsg(warningLogger, body, http.StatusMethodNotAllowed)
+		return
+	}
 	// Retrieve view id.
 	id_str := strings.TrimPrefix(req.URL.Path, "/view/")
 	if id_str == "" || strings.Contains(id_str, "/") {
-		http.Error(w, "Incorrect form of url: hostname/view/{id} expected", http.StatusBadRequest)
+		body["Error"] = fmt.Sprint("Incorrect form of url", req.URL.Path)
+		body["Message"] = "hostname/view/{id} expected"
+
+		compriseMsg(w, body, http.StatusMethodNotAllowed)
+		logMsg(warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
 
 	view_id, err := guuid.Parse(id_str)
 	if err != nil {
-		http.Error(w, "Invalid id value: UUID4 expected", http.StatusBadRequest)
+		body["Message"] = fmt.Sprintf("Invalid id(%s) value: UUID4 expected", id_str)
+		body["Error"] = err.Error()
+
+		compriseMsg(w, body, http.StatusUnprocessableEntity)
+		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
 		return
 	}
 
 	result, err := db.GetResValue(view_id)
 	if err != nil {
-		fmt.Fprintf(w, "Result for %s is not found.", view_id)
+		body["Error"] = fmt.Sprintf("Result for %s is not found.", view_id)
+
+		compriseMsg(w, body, http.StatusAccepted)
+		logMsg(warningLogger, body, http.StatusAccepted)
 	} else if result.First == containers.Error {
-		fmt.Fprintln(w, "Error encountered when analyzing the input, please reupload the files.")
+		body["Message"] = "Error encountered when analyzing the input, please reupload the files"
+		body["Error"] = result.Second
+
+		compriseMsg(w, body, http.StatusAccepted)
+		logMsg(errorLogger, body, http.StatusAccepted)
+
 	} else if result.First == containers.Pending {
-		fmt.Fprintln(w, "Analyzing the files haven't been completed yet, try again in several minutes.")
+		body["Error"] = "Analyzing the files haven't been completed yet, try again in several minutes"
+
+		compriseMsg(w, body, http.StatusAccepted)
+		logMsg(debugLogger, body, http.StatusAccepted)
+
 	} else {
-		fmt.Fprintf(w, "%v", result.Second)
+		body["Result"] = result.Second
+		body["Message"] = "Text similarity matrix"
+		body["Files"] = s3support.ListFilesByUUID(view_id)
+
+		compriseMsg(w, body, http.StatusOK)
+		logMsg(debugLogger, body, http.StatusOK)
 	}
 }
