@@ -143,7 +143,6 @@ func listFilesByUUID(id guuid.UUID) []string {
 
 func PrepareViewFileURL(id guuid.UUID, fileName string) *url.URL {
 	fileNames := listFilesByUUID(id)
-	fmt.Println(fileNames)
 	ok := false
 	for _, val := range fileNames {
 		if fileName == val {
@@ -157,7 +156,7 @@ func PrepareViewFileURL(id guuid.UUID, fileName string) *url.URL {
 	reqParams := make(url.Values)
 	val := fmt.Sprintf("attachment; filename=\"%s\"", fileName)
 	reqParams.Set("response-content-disposition", val)
-	presignedURL, err := minioClient.PresignedGetObject(rootCtx, bucketName, path.Join(id.String(), fileName), time.Second*24*60*60, reqParams)
+	presignedURL, err := minioClient.PresignedGetObject(rootCtx, bucketName, path.Join(id.String(), fileName), time.Second*60*60, reqParams)
 	if err != nil {
 		errorLogger.Println(err)
 		return nil

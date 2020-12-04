@@ -44,7 +44,7 @@ func configure() {
 func setupRoutes() {
 	http.HandleFunc("/upload_files", api.UploadFilesHandler)
 	http.HandleFunc("/view/", api.ViewRoomHandler)
-	http.HandleFunc("/link/", api.ServeFileViewByUUID)
+	http.HandleFunc("/link/", api.GetFileLinkById)
 
 }
 

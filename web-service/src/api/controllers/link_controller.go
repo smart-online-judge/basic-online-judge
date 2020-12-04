@@ -10,13 +10,13 @@ import (
 	guuid "github.com/google/uuid"
 )
 
-/*
-   type JSONResponse struct {
-	name string
-        }
-*/
-
-func ServeFileViewByUUID(w http.ResponseWriter, req *http.Request) {
+func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "GET" {
+		msg := "Only accepts GET"
+		debugLogger.Println(msg)
+		http.Error(w, msg, http.StatusMethodNotAllowed)
+		return
+	}
 	urlParsedQuery, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
 		errorLogger.Println(err)
@@ -34,13 +34,13 @@ func ServeFileViewByUUID(w http.ResponseWriter, req *http.Request) {
 
 	presignedURL := s3support.PrepareViewFileURL(id, fileName)
 	if presignedURL == nil {
-		errorLogger.Println(err)
 		msg := fmt.Sprintf("Unable to find a file with such name %s", fileName)
+		errorLogger.Println(msg)
 		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	jsonEncoded := fmt.Sprintf("{\"link\": \"%s\"}", presignedURL.String())
 	w.Write([]byte(jsonEncoded))
 }
