@@ -156,7 +156,7 @@ func PrepareViewFileURL(id guuid.UUID, fileName string) *url.URL {
 	reqParams := make(url.Values)
 	val := fmt.Sprintf("attachment; filename=\"%s\"", fileName)
 	reqParams.Set("response-content-disposition", val)
-	presignedURL, err := minioClient.PresignedGetObject(rootCtx, bucketName, path.Join(id.String(), fileName), time.Second*60*60, reqParams)
+	presignedURL, err := minioClient.PresignedGetObject(rootCtx, bucketName, path.Join(id.String(), fileName), time.Second*10*60, reqParams)
 	if err != nil {
 		errorLogger.Println(err)
 		return nil
