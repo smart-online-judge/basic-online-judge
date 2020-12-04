@@ -15,14 +15,6 @@ import (
 	guuid "github.com/google/uuid"
 )
 
-var (
-	db containers.ClientContainer
-)
-
-func initializeViewRoomController(container containers.ClientContainer) {
-	db = container
-}
-
 func prepareViewForUUID(id guuid.UUID) {
 	db.SavePendingClient(id, "")
 

@@ -15,6 +15,7 @@ var (
 	errorLogger    *log.Logger
 	debugLogger    *log.Logger
 	uploadFilesDir string
+	db containers.ClientContainer
 )
 
 func InitializeControllers(container containers.ClientContainer) {
@@ -23,8 +24,8 @@ func InitializeControllers(container containers.ClientContainer) {
 	debugLogger = utils.DebugLogger
 
 	uploadFilesDir = config.Internal.UploadFilesDir
+	db = container
 
-	initializeViewRoomController(container)
 	initializeUploadFilesController()
 }
 

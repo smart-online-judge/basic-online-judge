@@ -41,6 +41,13 @@ func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
 		return
 
+	} else if !db.ClientExists(id){
+		body["Error"] = fmt.Sprintf("Client with given id(%s) wasn't found", id.String())
+
+		compriseMsg(w, body, http.StatusAccepted)
+		logMsg(warningLogger, body, http.StatusAccepted)
+		return
+
 	} else if fileName == "" {
 		body["Error"] = fmt.Sprintf("Invalid filename(%s)", fileName)
 
@@ -55,10 +62,10 @@ func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 
 		compriseMsg(w, body, http.StatusAccepted)
 		logMsg(warningLogger, body, http.StatusAccepted)
-		return
-	}
 
-	body["Link"] = presignedURL.String()
-	compriseMsg(w, body, http.StatusOK)
-	logMsg(debugLogger, body, http.StatusOK)
+	} else {
+		body["Link"] = presignedURL.String()
+		compriseMsg(w, body, http.StatusOK)
+		logMsg(debugLogger, body, http.StatusOK)
+	}
 }

@@ -110,3 +110,15 @@ func (self *DbClientContainer) SaveSuccessClient(id guuid.UUID, result_json stri
 
 	return err
 }
+
+func (self *DbClientContainer) ClientExists(id guuid.UUID) bool {
+	sqlStmt := "SELECT EXISTS(SELECT * FROM CLIENTS WHERE uuid == ?);"
+
+	res, err := self.dbConnection.Exec(sqlStmt, id)
+	if err != nil {
+		return false;
+	}
+
+	rows, err := res.RowsAffected()
+	return err == nil && rows == 1
+}

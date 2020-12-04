@@ -16,6 +16,7 @@ const (
 type ClientContainer interface {
 	GetResValue(id guuid.UUID) (*utils.Pair, error)
 	SavePendingClient(id guuid.UUID, res string) error
+	ClientExists(id guuid.UUID) bool
 	SaveErrorClient(id guuid.UUID, res string) error
 	SaveSuccessClient(id guuid.UUID, res string) error
 }
