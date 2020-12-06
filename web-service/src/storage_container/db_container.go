@@ -2,11 +2,12 @@ package storage_container
 
 import (
 	"database/sql"
-	guuid "github.com/google/uuid"
-	_ "github.com/mattn/go-sqlite3"
 	"os"
 	"path/filepath"
 	"time"
+
+	guuid "github.com/google/uuid"
+	_ "github.com/mattn/go-sqlite3"
 	utils "web-service/src/utils"
 )
 
@@ -49,7 +50,7 @@ func (self *DbClientContainer) Initialize(db_path string) error {
 			creation_time INTEGER,
 			status CHARACTER,
 			result TEXT
-	)`)
+	);`)
 	// status - success, error, pending
 	// result - JSON error_msg or computed result
 	if err != nil {
@@ -57,7 +58,7 @@ func (self *DbClientContainer) Initialize(db_path string) error {
 	}
 
 	self.createClientStmt, err = self.dbConnection.Prepare(
-		"INSERT INTO CLIENTS (uuid, creation_time, status, result) VALUES (?, ?, ?, ?)")
+		"INSERT INTO CLIENTS (uuid, creation_time, status, result) VALUES (?, ?, ?, ?);")
 	if err != nil {
 		return err
 	}
@@ -69,7 +70,7 @@ func (self *DbClientContainer) Initialize(db_path string) error {
 	}
 
 	self.getClientResStmt, err = self.dbConnection.Prepare(
-		"SELECT status, result FROM CLIENTS WHERE uuid == ?")
+		"SELECT status, result FROM CLIENTS WHERE uuid == ?;")
 	if err != nil {
 		return err
 	}
@@ -112,13 +113,9 @@ func (self *DbClientContainer) SaveSuccessClient(id guuid.UUID, result_json stri
 }
 
 func (self *DbClientContainer) ClientExists(id guuid.UUID) bool {
-	sqlStmt := "SELECT EXISTS(SELECT * FROM CLIENTS WHERE uuid == ?);"
+	sqlStmt := "SELECT EXISTS(SELECT id FROM CLIENTS WHERE uuid == ?);"
 
-	res, err := self.dbConnection.Exec(sqlStmt, id)
-	if err != nil {
-		return false;
-	}
-
-	rows, err := res.RowsAffected()
-	return err == nil && rows == 1
+	var exists bool
+	err := self.dbConnection.QueryRow(sqlStmt, id.String()).Scan(&exists)
+	return err == nil && exists
 }
