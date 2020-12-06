@@ -113,15 +113,13 @@ func UploadFsFileByUUID(id guuid.UUID, clientDir string, fileName string) error 
 	return err
 }
 
-func LoadFileByUUID(id guuid.UUID, fileName string) io.Reader {
+func DownloadFileByUUID(id guuid.UUID, fileName string) (io.Reader, error) {
 	objectName := path.Join(id.String(), "/", fileName)
 	v, err := minioClient.GetObject(rootCtx, bucketName, objectName, minio.GetObjectOptions{})
 	if err != nil {
 		errorLogger.Println(err)
-		return nil
-	} else {
-		return v
 	}
+	return v, err
 }
 
 func ListFilesByUUID(id guuid.UUID) []string {

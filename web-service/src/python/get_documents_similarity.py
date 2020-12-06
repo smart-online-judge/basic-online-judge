@@ -30,7 +30,7 @@ def collect_verify_files(input_folder):
             dir_size, MAX_ALLOWED_FILES_SIZE))
 
     if len(file_names) < 2:
-        eprint("Files amount is lower than 2 - nothing to compare")
+        eprint("Files number is lower than 2 - nothing to compare")
 
     return file_names, file_paths
 

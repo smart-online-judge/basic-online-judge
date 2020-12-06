@@ -10,11 +10,13 @@ type ServerConfiguration struct {
 }
 
 type InternalConfiguration struct {
-	UploadFilesDir      string
-	MaxAllowedFilesSize int
-	LoggingDir          string
-	DbPath              string
-	PythonScriptPath    string
+	TempFilesDir               string
+	UploadFilesDir             string
+	MaxAllowedFilesSize        int
+	LoggingDir                 string
+	DbPath                     string
+	PythonSimilarityScriptPath string
+	PythonDifferenceScriptPath string
 }
 
 type MinioConfiguration struct {

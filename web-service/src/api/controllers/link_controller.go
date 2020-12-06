@@ -41,7 +41,7 @@ func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
 		return
 
-	} else if !db.ClientExists(id){
+	} else if !db.ClientExists(id) {
 		body["Error"] = fmt.Sprintf("Client with given id(%s) wasn't found", id.String())
 
 		compriseMsg(w, body, http.StatusAccepted)

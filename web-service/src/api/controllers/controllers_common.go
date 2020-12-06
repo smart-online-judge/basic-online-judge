@@ -15,7 +15,7 @@ var (
 	errorLogger    *log.Logger
 	debugLogger    *log.Logger
 	uploadFilesDir string
-	db containers.ClientContainer
+	db             containers.ClientContainer
 )
 
 func InitializeControllers(container containers.ClientContainer) {
@@ -30,7 +30,7 @@ func InitializeControllers(container containers.ClientContainer) {
 }
 
 func compriseMsg(w http.ResponseWriter, body map[string]interface{}, status int) error {
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 
 	err := json.NewEncoder(w).Encode(body)

@@ -4,11 +4,13 @@
     },
 
     "internal":{
-       "UploadFilesDir":"tmp",
+       "TempFilesDir":"tmp",
+       "UploadFilesDir":"tmp/uploaded",
        "MaxAllowedFilesSize":20971520,
        "LoggingDir":"logging",
        "DbPath":"database/meta.db",
-       "PythonScriptPath":"src/python/get_documents_similarity.py"
+       "PythonSimilarityScriptPath":"src/python/get_documents_similarity.py",
+       "PythonDifferenceScriptPath":"src/python/get_documents_difference.py"
     },
 
     "minio":{

@@ -5,7 +5,7 @@
         <title>Upload files view</title>
     </head>
     <body>
-        <form method="post" enctype="multipart/form-data" action="http://localhost:8080/upload_files">
+        <form method="post" enctype="multipart/form-data" charset="utf-8" action="http://localhost:8080/api/upload_files">
             <div>
                 <label for="file_uploads">Choose files to upload (TXT)</label>
                 <input type="file" id="file_uploads" name="file_uploads" accept=".txt" multiple/>

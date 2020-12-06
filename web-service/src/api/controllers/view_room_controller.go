@@ -49,10 +49,10 @@ func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Retrieve view id.
-	id_str := strings.TrimPrefix(req.URL.Path, "/view/")
+	id_str := strings.TrimPrefix(req.URL.Path, "/api/view/")
 	if id_str == "" || strings.Contains(id_str, "/") {
 		body["Error"] = fmt.Sprint("Incorrect form of url", req.URL.Path)
-		body["Message"] = "hostname/view/{id} expected"
+		body["Message"] = "hostname/api/view/{id} expected"
 
 		compriseMsg(w, body, http.StatusMethodNotAllowed)
 		logMsg(warningLogger, body, http.StatusMethodNotAllowed)

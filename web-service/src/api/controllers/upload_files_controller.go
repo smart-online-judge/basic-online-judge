@@ -19,11 +19,7 @@ var (
 func initializeUploadFilesController() {
 	maxAllowedFilesSize = config.Internal.MaxAllowedFilesSize
 
-	var err error
-	if _, err = os.Stat(uploadFilesDir); os.IsNotExist(err) {
-		err = os.MkdirAll(uploadFilesDir, os.ModePerm)
-	}
-	if err != nil {
+	if err := os.Mkdir(uploadFilesDir, os.ModePerm); err != nil {
 		errorLogger.Fatalln(err)
 	}
 }

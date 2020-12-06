@@ -25,6 +25,10 @@ func configure() {
 		log.Fatalln("Unable to read program config from", configPath, err)
 	}
 
+	if err := utils.InitializeEmptyDir(config.Internal.TempFilesDir); err != nil {
+		log.Fatalln("Unable to initialize temporary directory at", config.Internal.TempFilesDir, err)
+	}
+
 	if err := utils.InitializeLogger(); err != nil {
 		log.Fatalln("Unable to initialize logging at", config.Internal.LoggingDir, err)
 	}
@@ -42,10 +46,10 @@ func configure() {
 }
 
 func setupRoutes() {
-	http.HandleFunc("/upload_files", api.UploadFilesHandler)
-	http.HandleFunc("/view/", api.ViewRoomHandler)
-	http.HandleFunc("/link", api.GetFileLinkById)
-
+	http.HandleFunc("/api/upload_files", api.UploadFilesHandler)
+	http.HandleFunc("/api/view/", api.ViewRoomHandler)
+	http.HandleFunc("/api/link", api.GetFileLinkById)
+	http.HandleFunc("/api/cmp_files", api.CompareFilesHandler)
 }
 
 func main() {
