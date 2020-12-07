@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 	"io/ioutil"
+
+	utils "web-service/src/utils"
 )
 
 type ServerConfiguration struct {
@@ -53,5 +55,16 @@ func ReadConfig(config_path string) error {
 	Server = conf.Server
 	Internal = conf.Internal
 	Minio = conf.Minio
+
+	Internal.PythonSimilarityScriptPath, err = utils.GetAbsolutePath(Internal.PythonSimilarityScriptPath)
+	if err != nil {
+		return err
+	}
+
+	Internal.PythonDifferenceScriptPath, err = utils.GetAbsolutePath(Internal.PythonDifferenceScriptPath)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -4,8 +4,6 @@ import (
 	"log"
 	"os"
 	"path"
-
-	config "web-service/src/config"
 )
 
 const (
@@ -19,9 +17,8 @@ var (
 	defaultloggingFile *os.File
 )
 
-func InitializeLogger() error {
-	dir := config.Internal.LoggingDir
-	if err := os.MkdirAll(config.Internal.LoggingDir, os.ModePerm); err != nil {
+func InitializeLogger(dir string) error {
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
 	}
 

@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	s3support "web-service/src/s3support"
-	containers "web-service/src/storage_container"
 	nlp "web-service/src/text_similarity"
 
 	guuid "github.com/google/uuid"
@@ -70,23 +69,8 @@ func ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	result, err := db.GetResValue(view_id)
-	if err != nil {
-		body["Error"] = fmt.Sprintf("Result for %s is not found.", view_id)
-
-		compriseMsg(w, body, http.StatusAccepted)
-		logMsg(warningLogger, body, http.StatusAccepted)
-	} else if result.First == containers.Error {
-		body["Message"] = "Error encountered when analyzing the input, please reupload the files"
-		body["Error"] = result.Second
-
-		compriseMsg(w, body, http.StatusAccepted)
-		logMsg(errorLogger, body, http.StatusAccepted)
-
-	} else if result.First == containers.Pending {
-		body["Error"] = "Analyzing the files haven't been completed yet, try again in several minutes"
-
-		compriseMsg(w, body, http.StatusAccepted)
-		logMsg(debugLogger, body, http.StatusAccepted)
+	if reportUnreadyClient(w, view_id, result, err) {
+		return
 
 	} else {
 		body["Result"] = result.Second

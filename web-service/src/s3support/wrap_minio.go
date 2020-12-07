@@ -139,7 +139,7 @@ func ListFilesByUUID(id guuid.UUID) []string {
 	return res
 }
 
-func PrepareViewFileURL(id guuid.UUID, fileName string) *url.URL {
+func GetViewFileURL(id guuid.UUID, fileName string) *url.URL {
 	fileNames := ListFilesByUUID(id)
 	ok := false
 	for _, val := range fileNames {

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -33,6 +34,7 @@ func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 
 	id_str, fileName := urlParsedQuery.Get("id"), urlParsedQuery.Get("name")
 	id, err := guuid.Parse(id_str)
+
 	if err != nil {
 		body["Message"] = fmt.Sprintf("Invalid id(%s) value: UUID4 expected", id_str)
 		body["Error"] = err.Error()
@@ -41,31 +43,35 @@ func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
 		return
 
-	} else if !db.ClientExists(id) {
-		body["Error"] = fmt.Sprintf("Client with given id(%s) wasn't found", id.String())
-
-		compriseMsg(w, body, http.StatusAccepted)
-		logMsg(warningLogger, body, http.StatusAccepted)
-		return
-
 	} else if fileName == "" {
 		body["Error"] = fmt.Sprintf("Invalid filename(%s)", fileName)
 
 		compriseMsg(w, body, http.StatusUnprocessableEntity)
 		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
 		return
-	}
-
-	presignedURL := s3support.PrepareViewFileURL(id, fileName)
-	if presignedURL == nil {
-		body["Error"] = fmt.Sprintf("Unable to find a file with such name %s", fileName)
-
-		compriseMsg(w, body, http.StatusAccepted)
-		logMsg(warningLogger, body, http.StatusAccepted)
 
 	} else {
-		body["Link"] = presignedURL.String()
-		compriseMsg(w, body, http.StatusOK)
-		logMsg(debugLogger, body, http.StatusOK)
+		result, err := db.GetResValue(id)
+
+		if reportUnreadyClient(w, id, result, err) {
+			return
+
+		} else if presignedURL := s3support.GetViewFileURL(id, fileName); presignedURL != nil {
+			body["Link"] = presignedURL.String()
+
+			w.Header().Add("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			enc := json.NewEncoder(w)
+			enc.SetEscapeHTML(false)
+			enc.Encode(body)
+
+			logMsg(debugLogger, body, http.StatusOK)
+
+		} else {
+			body["Error"] = fmt.Sprintf("Unable to find a file with such name %s", fileName)
+
+			compriseMsg(w, body, http.StatusAccepted)
+			logMsg(warningLogger, body, http.StatusAccepted)
+		}
 	}
 }

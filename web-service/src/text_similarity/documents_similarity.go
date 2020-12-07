@@ -3,13 +3,10 @@ package text_similarity
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
-	"path"
-	"path/filepath"
-	"strings"
 
 	config "web-service/src/config"
+	utils "web-service/src/utils"
 )
 
 type PythonInternalError struct {
@@ -26,23 +23,14 @@ func (e *PythonInternalError) Error() string {
 
 func GetPairwiseSimilarity(input_path string, args ...string) (string, error) {
 	var err error
-	var cur_path string
-	if cur_path, err = filepath.Abs(filepath.Dir(os.Args[0])); err != nil {
+	if input_path, err = utils.GetAbsolutePath(input_path); err != nil {
 		return "", err
 	}
 
 	var execute_path = config.Internal.PythonSimilarityScriptPath
-	if !strings.HasPrefix(execute_path, string(os.PathSeparator)) {
-		execute_path = path.Join(cur_path, execute_path)
-	}
-
-	if !strings.HasPrefix(input_path, string(os.PathSeparator)) {
-		input_path = path.Join(cur_path, input_path)
-	}
-
 	args = append([]string{execute_path}, args...)
-	var pipe_out, pipe_err bytes.Buffer
 
+	var pipe_out, pipe_err bytes.Buffer
 	// rely on environment variable for `python`
 	cmd := exec.Command("python", append(args, input_path)...)
 	cmd.Stdout = &pipe_out

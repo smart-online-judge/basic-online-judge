@@ -47,11 +47,7 @@ func CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 		compriseMsg(w, body, http.StatusUnprocessableEntity)
 		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
 
-	} else if !db.ClientExists(id) {
-		body["Error"] = fmt.Sprintf("Client with given id(%s) wasn't found", id.String())
-
-		compriseMsg(w, body, http.StatusAccepted)
-		logMsg(warningLogger, body, http.StatusAccepted)
+	} else if result, err := db.GetResValue(id); reportUnreadyClient(w, id, result, err) {
 		return
 	}
 

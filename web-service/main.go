@@ -29,7 +29,7 @@ func configure() {
 		log.Fatalln("Unable to initialize temporary directory at", config.Internal.TempFilesDir, err)
 	}
 
-	if err := utils.InitializeLogger(); err != nil {
+	if err := utils.InitializeLogger(config.Internal.LoggingDir); err != nil {
 		log.Fatalln("Unable to initialize logging at", config.Internal.LoggingDir, err)
 	}
 
