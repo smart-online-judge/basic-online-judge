@@ -93,10 +93,8 @@ func CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 			if html == "false" {
 				compriseMsg(w, body, http.StatusOK)
 			} else {
-				w.Header().Add("Content-Type", "text/html; charset=utf-8")
-				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
 				fmt.Fprintf(w, res)
-
 			}
 			logMsg(debugLogger, body, http.StatusOK)
 		}

@@ -59,8 +59,7 @@ func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 		} else if presignedURL := s3support.GetViewFileURL(id, fileName); presignedURL != nil {
 			body["Link"] = presignedURL.String()
 
-			w.Header().Add("Content-Type", "application/json; charset=utf-8")
-			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			enc := json.NewEncoder(w)
 			enc.SetEscapeHTML(false)
 			enc.Encode(body)
