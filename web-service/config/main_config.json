@@ -1,6 +1,6 @@
 {
     "server":{
-       "Port":":8080"
+       "Port":"8080"
     },
 
     "internal":{

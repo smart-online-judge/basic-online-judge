@@ -30,7 +30,7 @@ const (
 	loggingPath = "logging/wrapMinIO.log"
 )
 
-var (
+type MinioService struct {
 	minioClient *minio.Client
 	bucketName  string
 
@@ -38,99 +38,116 @@ var (
 	errorLogger   *log.Logger
 	debugLogger   *log.Logger
 	rootCtx       context.Context
-)
+}
 
-func InitializeS3Support() {
+func NewMinioService(conf *config.MinioConfiguration) (*MinioService, error) {
+	minio_service := &MinioService{}
+	err := minio_service.initialize(conf)
+	return minio_service, err
+}
+
+func (self *MinioService) initialize(conf *config.MinioConfiguration) error {
 	diagFile, err := utils.CreateFileIfNotExists(loggingPath)
 	if err != nil {
 		log.Fatalln("not able to initialize logger")
 	}
 
-	warningLogger = utils.GetLoggerPkgScoped("WARNING: ", diagFile)
-	errorLogger = utils.GetLoggerPkgScoped("ERROR: ", diagFile)
-	debugLogger = utils.GetLoggerPkgScoped("DEBUG: ", diagFile)
-	rootCtx = context.Background()
-	bucketName = config.Minio.BucketName
+	self.warningLogger = utils.GetLoggerPkgScoped("WARNING: ", diagFile)
+	self.errorLogger = utils.GetLoggerPkgScoped("ERROR: ", diagFile)
+	self.debugLogger = utils.GetLoggerPkgScoped("DEBUG: ", diagFile)
+	self.rootCtx = context.Background()
+	self.bucketName = conf.BucketName
 
-	minioClient, err = minio.New(config.Minio.ConnectionString, &minio.Options{
-		Creds:  credentials.NewStaticV4(config.Minio.AccessKeyID, config.Minio.SecretAccessKey, ""),
-		Secure: config.Minio.UseSSL},
+	self.minioClient, err = minio.New(conf.ConnectionString, &minio.Options{
+		Creds:  credentials.NewStaticV4(conf.AccessKeyID, conf.SecretAccessKey, ""),
+		Secure: conf.UseSSL},
 	)
 	if err != nil {
-		errorLogger.Fatalln(err)
+		return err
 	}
 
-	err = minioClient.MakeBucket(
-		rootCtx,
-		bucketName,
+	err = self.minioClient.MakeBucket(
+		self.rootCtx,
+		self.bucketName,
 
 		// us-east-1 is used in local deployments
 		minio.MakeBucketOptions{Region: "us-east-1"},
 	)
 	if err != nil {
-		exists, errBucketExists := minioClient.BucketExists(rootCtx, bucketName)
+		exists, errBucketExists := self.minioClient.BucketExists(self.rootCtx, self.bucketName)
 		if errBucketExists == nil && exists {
-			debugLogger.Printf("bucket %#v is already on the server\n", bucketName)
+			self.debugLogger.Printf("bucket %#v is already on the server\n", self.bucketName)
 		} else {
-			errorLogger.Fatalln(err)
+			return err
 		}
 	} else {
-		debugLogger.Println("created new bucket")
+		self.debugLogger.Println("created new bucket")
 	}
+	return nil
 }
 
-func StoreFileByUUID(id guuid.UUID, file io.Reader, fileName string) error {
+func (self *MinioService) StoreFileByUUID(id guuid.UUID, file io.Reader, fileName string) error {
 	objectName := path.Join(id.String(), "/", fileName)
 	// - "application/octet-stream" means binary file, which we have
 	// internally in Go here (io.Reader)
 	// - "-1" means "unknown size"
-	_, err := minioClient.PutObject(rootCtx, bucketName, objectName, file, -1, minio.PutObjectOptions{ContentType: "application/text", ContentEncoding: "utf-8"})
+	_, err := self.minioClient.PutObject(
+		self.rootCtx, self.bucketName, objectName,
+		file, -1, minio.PutObjectOptions{
+			ContentType:     "application/text",
+			ContentEncoding: "utf-8",
+		},
+	)
 
 	if err != nil {
-		errorLogger.Println(err)
+		self.errorLogger.Println(err)
 	} else {
-		debugLogger.Println("PutObject success")
+		self.debugLogger.Println("PutObject success")
 	}
 	return err
 }
 
-func UploadFsFileByUUID(id guuid.UUID, clientDir string, fileName string) error {
+func (self *MinioService) UploadFsFileByUUID(id guuid.UUID, clientDir string, fileName string) error {
 	objectName := path.Join(id.String(), "/", fileName)
 	filePath := path.Join(clientDir, fileName)
 
-	_, err := minioClient.FPutObject(
-		rootCtx, bucketName, objectName, filePath,
+	_, err := self.minioClient.FPutObject(
+		self.rootCtx, self.bucketName, objectName, filePath,
 		minio.PutObjectOptions{
 			ContentType:     "application/text",
 			ContentEncoding: "utf-8"},
 	)
 
 	if err != nil {
-		errorLogger.Println(err)
+		self.errorLogger.Println(err)
 	} else {
-		debugLogger.Printf("PutObject %s to %s success\n", filePath, objectName)
+		self.debugLogger.Printf("PutObject %s to %s success\n", filePath, objectName)
 	}
 	return err
 }
 
-func DownloadFileByUUID(id guuid.UUID, fileName string) (io.Reader, error) {
+func (self *MinioService) DownloadFileByUUID(id guuid.UUID, fileName string) (io.Reader, error) {
 	objectName := path.Join(id.String(), "/", fileName)
-	v, err := minioClient.GetObject(rootCtx, bucketName, objectName, minio.GetObjectOptions{})
+	v, err := self.minioClient.GetObject(
+		self.rootCtx, self.bucketName,
+		objectName, minio.GetObjectOptions{},
+	)
 	if err != nil {
-		errorLogger.Println(err)
+		self.errorLogger.Println(err)
 	}
 	return v, err
 }
 
-func ListFilesByUUID(id guuid.UUID) []string {
+func (self *MinioService) ListFilesByUUID(id guuid.UUID) []string {
 	var res []string
-	objectCh := minioClient.ListObjects(rootCtx, bucketName, minio.ListObjectsOptions{
-		Prefix:    id.String(),
-		Recursive: true,
-	})
+	objectCh := self.minioClient.ListObjects(
+		self.rootCtx, self.bucketName, minio.ListObjectsOptions{
+			Prefix:    id.String(),
+			Recursive: true},
+	)
 	for object := range objectCh {
 		if object.Err != nil {
-			errorLogger.Println(object.Err)
+			self.errorLogger.Println(object.Err)
 			return res
 		}
 		nextFileName := strings.Split(object.Key, "/")
@@ -139,8 +156,8 @@ func ListFilesByUUID(id guuid.UUID) []string {
 	return res
 }
 
-func GetViewFileURL(id guuid.UUID, fileName string) *url.URL {
-	fileNames := ListFilesByUUID(id)
+func (self *MinioService) GetViewFileURL(id guuid.UUID, fileName string) *url.URL {
+	fileNames := self.ListFilesByUUID(id)
 	ok := false
 	for _, val := range fileNames {
 		if fileName == val {
@@ -154,15 +171,16 @@ func GetViewFileURL(id guuid.UUID, fileName string) *url.URL {
 	reqParams := make(url.Values)
 	val := fmt.Sprintf("attachment; filename=\"%s\"", fileName)
 	reqParams.Set("response-content-disposition", val)
-	presignedURL, err := minioClient.PresignedGetObject(rootCtx, bucketName, path.Join(id.String(), fileName), time.Second*10*60, reqParams)
+	presignedURL, err := self.minioClient.PresignedGetObject(
+		self.rootCtx, self.bucketName, path.Join(id.String(), fileName), time.Second*10*60, reqParams)
 	if err != nil {
-		errorLogger.Println(err)
+		self.errorLogger.Println(err)
 		return nil
 	}
 	return presignedURL
 }
 
-func RemoveFilesByPrefix(prefix string) {
+func (self *MinioService) RemoveFilesByPrefix(prefix string) {
 	objectsCh := make(chan minio.ObjectInfo)
 
 	// Send object names that are needed to be removed to objectsCh
@@ -170,19 +188,19 @@ func RemoveFilesByPrefix(prefix string) {
 		defer close(objectsCh)
 		// List all objects from a bucket-name with a matching prefix.
 		opts := minio.ListObjectsOptions{Prefix: prefix, Recursive: true}
-		for object := range minioClient.ListObjects(rootCtx, bucketName, opts) {
+		for object := range self.minioClient.ListObjects(self.rootCtx, self.bucketName, opts) {
 			if object.Err != nil {
-				errorLogger.Println(object.Err)
+				self.errorLogger.Println(object.Err)
 			}
 			objectsCh <- object
 		}
 	}()
 
 	// Call RemoveObjects API
-	errorCh := minioClient.RemoveObjects(rootCtx, bucketName, objectsCh, minio.RemoveObjectsOptions{})
+	errorCh := self.minioClient.RemoveObjects(self.rootCtx, self.bucketName, objectsCh, minio.RemoveObjectsOptions{})
 
 	// Print errors received from RemoveObjects API
 	for e := range errorCh {
-		errorLogger.Println("Failed to remove " + e.ObjectName + ", error: " + e.Err.Error())
+		self.errorLogger.Println("Failed to remove " + e.ObjectName + ", error: " + e.Err.Error())
 	}
 }

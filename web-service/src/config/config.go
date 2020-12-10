@@ -14,7 +14,7 @@ type ServerConfiguration struct {
 type InternalConfiguration struct {
 	TempFilesDir               string
 	UploadFilesDir             string
-	MaxAllowedFilesSize        int
+	MaxAllowedFilesSize        int64
 	RefreshStaleDataPeriod     int64
 	LoggingDir                 string
 	DbPath                     string
@@ -36,36 +36,26 @@ type Configuration struct {
 	Minio    MinioConfiguration
 }
 
-var (
-	Server   ServerConfiguration
-	Internal InternalConfiguration
-	Minio    MinioConfiguration
-)
-
-func ReadConfig(config_path string) error {
+func NewConfig(config_path string) (*Configuration, error) {
 	content, err := ioutil.ReadFile(config_path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var conf Configuration
 	if err = json.Unmarshal(content, &conf); err != nil {
-		return err
+		return nil, err
 	}
 
-	Server = conf.Server
-	Internal = conf.Internal
-	Minio = conf.Minio
-
-	Internal.PythonSimilarityScriptPath, err = utils.GetAbsolutePath(Internal.PythonSimilarityScriptPath)
+	conf.Internal.PythonSimilarityScriptPath, err = utils.GetAbsolutePath(conf.Internal.PythonSimilarityScriptPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	Internal.PythonDifferenceScriptPath, err = utils.GetAbsolutePath(Internal.PythonDifferenceScriptPath)
+	conf.Internal.PythonDifferenceScriptPath, err = utils.GetAbsolutePath(conf.Internal.PythonDifferenceScriptPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &conf, nil
 }
