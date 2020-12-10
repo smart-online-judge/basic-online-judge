@@ -7,7 +7,7 @@ import (
 	api "web-service/src/api/controllers"
 	config "web-service/src/config"
 	s3support "web-service/src/s3support"
-	stale_demon "web-service/src/stale_demon"
+	stale_daemon "web-service/src/stale_daemon"
 	containers "web-service/src/storage_container"
 	utils "web-service/src/utils"
 )
@@ -45,8 +45,8 @@ func configure() {
 	api.InitializeControllers(db)
 	s3support.InitializeS3Support()
 
-	stale_demon.InitializeDemon(db, config.Internal.RefreshStaleDataPeriod)
-	stale_demon.StartAsync()
+	stale_daemon.InitializeDaemon(db, config.Internal.RefreshStaleDataPeriod)
+	stale_daemon.StartAsync()
 }
 
 func setupRoutes() {
