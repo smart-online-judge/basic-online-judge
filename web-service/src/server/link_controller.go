@@ -10,7 +10,7 @@ import (
 	utils "web-service/src/utils"
 )
 
-func (s *Server) getFileLinkById(w http.ResponseWriter, req *http.Request) {
+func (s *Server) GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 	body := make(map[string]interface{})
 
 	if req.Method != "GET" {

@@ -27,10 +27,10 @@ type Server struct {
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/upload_files", s.uploadFilesHandler)
-	mux.HandleFunc("/api/view/", s.viewRoomHandler)
-	mux.HandleFunc("/api/link", s.getFileLinkById)
-	mux.HandleFunc("/api/cmp_files", s.compareFilesHandler)
+	mux.HandleFunc("/api/upload_files", s.UploadFilesHandler)
+	mux.HandleFunc("/api/view/", s.ViewRoomHandler)
+	mux.HandleFunc("/api/link", s.GetFileLinkById)
+	mux.HandleFunc("/api/cmp_files", s.CompareFilesHandler)
 
 	return mux
 }
@@ -58,6 +58,26 @@ func NewServer(
 		debugLogger:   utils.DebugLogger,
 		errorLogger:   utils.ErrorLogger,
 		nlpCore:       nlpCore,
+	}
+
+	if err := os.Mkdir(conf.Internal.UploadFilesDir, os.ModePerm); err != nil {
+		s.errorLogger.Fatalln(err)
+	}
+
+	return s
+}
+
+func NewTestServer(
+	conf *config.Configuration) *Server {
+
+	s := &Server{
+		conf:          conf,
+		db:            nil,
+		s3Client:      nil,
+		warningLogger: utils.WarningLogger,
+		debugLogger:   utils.DebugLogger,
+		errorLogger:   utils.ErrorLogger,
+		nlpCore:       nil,
 	}
 
 	if err := os.Mkdir(conf.Internal.UploadFilesDir, os.ModePerm); err != nil {

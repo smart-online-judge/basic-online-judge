@@ -12,7 +12,7 @@ import (
 	utils "web-service/src/utils"
 )
 
-func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) UploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 	s.debugLogger.Println("uploadFiles Endpoint hit")
 	body := make(map[string]interface{})
 

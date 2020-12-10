@@ -34,7 +34,7 @@ func (s *Server) prepareViewForUUID(id guuid.UUID) {
 	os.RemoveAll(clientDir)
 }
 
-func (s *Server) viewRoomHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) ViewRoomHandler(w http.ResponseWriter, req *http.Request) {
 	s.debugLogger.Println("viewRoom Endpoint hit")
 	body := make(map[string]interface{})
 
