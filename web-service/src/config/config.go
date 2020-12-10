@@ -15,6 +15,7 @@ type InternalConfiguration struct {
 	TempFilesDir               string
 	UploadFilesDir             string
 	MaxAllowedFilesSize        int
+	RefreshStaleDataPeriod     int64
 	LoggingDir                 string
 	DbPath                     string
 	PythonSimilarityScriptPath string

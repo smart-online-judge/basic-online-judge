@@ -161,3 +161,28 @@ func GetViewFileURL(id guuid.UUID, fileName string) *url.URL {
 	}
 	return presignedURL
 }
+
+func RemoveFilesByPrefix(prefix string) {
+	objectsCh := make(chan minio.ObjectInfo)
+
+	// Send object names that are needed to be removed to objectsCh
+	go func() {
+		defer close(objectsCh)
+		// List all objects from a bucket-name with a matching prefix.
+		opts := minio.ListObjectsOptions{Prefix: prefix, Recursive: true}
+		for object := range minioClient.ListObjects(rootCtx, bucketName, opts) {
+			if object.Err != nil {
+				errorLogger.Println(object.Err)
+			}
+			objectsCh <- object
+		}
+	}()
+
+	// Call RemoveObjects API
+	errorCh := minioClient.RemoveObjects(rootCtx, bucketName, objectsCh, minio.RemoveObjectsOptions{})
+
+	// Print errors received from RemoveObjects API
+	for e := range errorCh {
+		errorLogger.Println("Failed to remove " + e.ObjectName + ", error: " + e.Err.Error())
+	}
+}

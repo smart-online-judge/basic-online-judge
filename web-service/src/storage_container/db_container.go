@@ -119,3 +119,30 @@ func (self *DbClientContainer) ClientExists(id guuid.UUID) bool {
 	err := self.dbConnection.QueryRow(sqlStmt, id.String()).Scan(&exists)
 	return err == nil && exists
 }
+
+func (self *DbClientContainer) GetRemoveStaleClients(back_period int64) ([]string, error) {
+	selectStmt := `SELECT uuid FROM CLIENTS WHERE ABS(? - creation_time) > ?;`
+	deleteStmt := `DELETE FROM CLIENTS WHERE ABS(? - creation_time) > ?;`
+
+	cur_time := time.Now().Unix()
+	rows, err := self.dbConnection.Query(selectStmt, cur_time, back_period)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var resIds []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err == nil {
+			resIds = append(resIds, id)
+		}
+	}
+
+	_, err = self.dbConnection.Exec(deleteStmt, cur_time, back_period)
+	if err != nil {
+		return nil, err
+	}
+
+	return resIds, nil
+}
