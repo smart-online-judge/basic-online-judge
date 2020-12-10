@@ -11,7 +11,7 @@ import (
 	guuid "github.com/google/uuid"
 )
 
-func (s *Server) UploadFilesHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 	s.debugLogger.Println("uploadFiles Endpoint hit")
 	body := make(map[string]interface{})
 

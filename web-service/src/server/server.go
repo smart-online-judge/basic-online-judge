@@ -27,10 +27,10 @@ type Server struct {
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/upload_files", s.UploadFilesHandler)
-	mux.HandleFunc("/api/view/", s.ViewRoomHandler)
-	mux.HandleFunc("/api/link", s.GetFileLinkById)
-	mux.HandleFunc("/api/cmp_files", s.CompareFilesHandler)
+	mux.HandleFunc("/api/upload_files", s.uploadFilesHandler)
+	mux.HandleFunc("/api/view/", s.viewRoomHandler)
+	mux.HandleFunc("/api/link", s.getFileLinkById)
+	mux.HandleFunc("/api/cmp_files", s.compareFilesHandler)
 
 	return mux
 }
