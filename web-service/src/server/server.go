@@ -41,7 +41,7 @@ func (s *Server) Run() {
 		Handler: s.Handler(),
 	}
 
-	httpServer.ListenAndServe()
+	s.errorLogger.Println(httpServer.ListenAndServe())
 }
 
 func NewServer(

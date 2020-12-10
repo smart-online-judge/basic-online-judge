@@ -33,16 +33,16 @@ func (s *Server) compareFilesHandler(w http.ResponseWriter, req *http.Request) {
 
 	id, err := guuid.Parse(urlParsedQuery.Get("id"))
 	fileNames := []string{urlParsedQuery.Get("f1"), urlParsedQuery.Get("f2")}
-
 	if err != nil || fileNames[0] == "" || fileNames[1] == "" {
 		body["Message"] = `Expected url format: /cmp_files?id=UUID4&f1=str&f2=str`
 		if err != nil {
 			body["Error"] = err.Error()
 		} else {
-			body["Error"] = fmt.Sprint("Incorrect form of the input url: ", req.URL.RawQuery)
+			body["Error"] = fmt.Sprint("Incorrect form of the input url: ", req.URL.String())
 		}
 		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
 		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
+		return
 
 	} else if result, err := s.db.GetResValue(id); s.reportUnreadyClient(w, id, result, err) {
 		return
