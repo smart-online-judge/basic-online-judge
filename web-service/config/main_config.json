@@ -1,0 +1,24 @@
+{
+    "server":{
+       "Port":"8080"
+    },
+
+    "internal":{
+       "TempFilesDir":"tmp",
+       "UploadFilesDir":"tmp/uploaded",
+       "MaxAllowedFilesSize":20971520,
+       "RefreshStaleDataPeriod":86400,
+       "LoggingDir":"logging",
+       "DbPath":"database/meta.db",
+       "PythonSimilarityScriptPath":"src/python/get_documents_similarity.py",
+       "PythonDifferenceScriptPath":"src/python/get_documents_difference.py"
+    },
+
+    "minio":{
+       "ConnectionString":"localhost:9000",
+       "AccessKeyID":"minioadmin",
+       "SecretAccessKey":"minioadmin",
+       "UseSSL":false,
+       "BucketName":"user-files"
+    }
+}
