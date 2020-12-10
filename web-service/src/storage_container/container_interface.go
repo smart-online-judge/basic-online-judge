@@ -13,7 +13,7 @@ const (
 	Pending ResStatus = "Pending"
 )
 
-type ClientContainer interface {
+type ClientStorageInterface interface {
 	GetResValue(id guuid.UUID) (*utils.Pair, error)
 	SavePendingClient(id guuid.UUID, res string) error
 	ClientExists(id guuid.UUID) bool

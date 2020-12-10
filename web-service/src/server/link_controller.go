@@ -1,4 +1,4 @@
-package api
+package server
 
 import (
 	"encoding/json"
@@ -6,19 +6,17 @@ import (
 	"net/http"
 	"net/url"
 
-	s3support "web-service/src/s3support"
-
 	guuid "github.com/google/uuid"
 )
 
-func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
+func (s *Server) GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 	body := make(map[string]interface{})
 
 	if req.Method != "GET" {
 		body["Error"] = fmt.Sprintf("%s request type isn't supported", req.Method)
 
-		compriseMsg(w, body, http.StatusMethodNotAllowed)
-		logMsg(warningLogger, body, http.StatusMethodNotAllowed)
+		s.compriseMsg(w, body, http.StatusMethodNotAllowed)
+		s.logMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -27,8 +25,8 @@ func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = "Unable to parse input url"
 		body["Error"] = err.Error()
 
-		compriseMsg(w, body, http.StatusUnprocessableEntity)
-		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
+		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
+		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -39,24 +37,24 @@ func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = fmt.Sprintf("Invalid id(%s) value: UUID4 expected", id_str)
 		body["Error"] = err.Error()
 
-		compriseMsg(w, body, http.StatusUnprocessableEntity)
-		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
+		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
+		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 
 	} else if fileName == "" {
 		body["Error"] = fmt.Sprintf("Invalid filename(%s)", fileName)
 
-		compriseMsg(w, body, http.StatusUnprocessableEntity)
-		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
+		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
+		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 
 	} else {
-		result, err := db.GetResValue(id)
+		result, err := s.db.GetResValue(id)
 
-		if reportUnreadyClient(w, id, result, err) {
+		if s.reportUnreadyClient(w, id, result, err) {
 			return
 
-		} else if presignedURL := s3support.GetViewFileURL(id, fileName); presignedURL != nil {
+		} else if presignedURL := s.s3Client.GetViewFileURL(id, fileName); presignedURL != nil {
 			body["Link"] = presignedURL.String()
 
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -64,13 +62,13 @@ func GetFileLinkById(w http.ResponseWriter, req *http.Request) {
 			enc.SetEscapeHTML(false)
 			enc.Encode(body)
 
-			logMsg(debugLogger, body, http.StatusOK)
+			s.logMsg(s.debugLogger, body, http.StatusOK)
 
 		} else {
 			body["Error"] = fmt.Sprintf("Unable to find a file with such name %s", fileName)
 
-			compriseMsg(w, body, http.StatusAccepted)
-			logMsg(warningLogger, body, http.StatusAccepted)
+			s.compriseMsg(w, body, http.StatusAccepted)
+			s.logMsg(s.warningLogger, body, http.StatusAccepted)
 		}
 	}
 }

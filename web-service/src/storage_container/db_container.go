@@ -11,7 +11,7 @@ import (
 	utils "web-service/src/utils"
 )
 
-type DbClientContainer struct {
+type DbClientService struct {
 	dbConnection *sql.DB
 
 	createClientStmt     *sql.Stmt
@@ -20,11 +20,13 @@ type DbClientContainer struct {
 	getClientResStmt     *sql.Stmt
 }
 
-func NewDB() *DbClientContainer {
-	return new(DbClientContainer)
+func NewDbClientService(db_path string) (*DbClientService, error) {
+	db := new(DbClientService)
+	err := db.initialize(db_path)
+	return db, err
 }
 
-func (self *DbClientContainer) Close() error {
+func (self *DbClientService) Close() error {
 	self.createClientStmt.Close()
 	self.updateClientResStmt.Close()
 	self.getClientResStmt.Close()
@@ -32,7 +34,7 @@ func (self *DbClientContainer) Close() error {
 	return err
 }
 
-func (self *DbClientContainer) Initialize(db_path string) error {
+func (self *DbClientService) initialize(db_path string) error {
 	dir, _ := filepath.Split(db_path)
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return err
@@ -78,7 +80,7 @@ func (self *DbClientContainer) Initialize(db_path string) error {
 	return nil
 }
 
-func (self *DbClientContainer) GetResValue(id guuid.UUID) (*utils.Pair, error) {
+func (self *DbClientService) GetResValue(id guuid.UUID) (*utils.Pair, error) {
 	var result string
 	var status ResStatus
 	err := self.getClientResStmt.QueryRow(id.String()).Scan(&status, &result)
@@ -89,21 +91,21 @@ func (self *DbClientContainer) GetResValue(id guuid.UUID) (*utils.Pair, error) {
 	return &utils.Pair{status, result}, err
 }
 
-func (self *DbClientContainer) SavePendingClient(id guuid.UUID, msg string) error {
+func (self *DbClientService) SavePendingClient(id guuid.UUID, msg string) error {
 	_, err := self.createClientStmt.Exec(
 		id.String(), time.Now().Unix(), Pending, msg)
 
 	return err
 }
 
-func (self *DbClientContainer) SaveErrorClient(id guuid.UUID, err_msg string) error {
+func (self *DbClientService) SaveErrorClient(id guuid.UUID, err_msg string) error {
 	_, err := self.updateClientResStmt.Exec(
 		Error, err_msg, id.String())
 
 	return err
 }
 
-func (self *DbClientContainer) SaveSuccessClient(id guuid.UUID, result_json string) error {
+func (self *DbClientService) SaveSuccessClient(id guuid.UUID, result_json string) error {
 	_, err := self.updateClientResStmt.Exec(
 		Success,
 		result_json,
@@ -112,7 +114,7 @@ func (self *DbClientContainer) SaveSuccessClient(id guuid.UUID, result_json stri
 	return err
 }
 
-func (self *DbClientContainer) ClientExists(id guuid.UUID) bool {
+func (self *DbClientService) ClientExists(id guuid.UUID) bool {
 	sqlStmt := "SELECT EXISTS(SELECT id FROM CLIENTS WHERE uuid == ?);"
 
 	var exists bool
@@ -120,7 +122,7 @@ func (self *DbClientContainer) ClientExists(id guuid.UUID) bool {
 	return err == nil && exists
 }
 
-func (self *DbClientContainer) GetRemoveStaleClients(back_period int64) ([]string, error) {
+func (self *DbClientService) GetRemoveStaleClients(back_period int64) ([]string, error) {
 	selectStmt := `SELECT uuid FROM CLIENTS WHERE ABS(? - creation_time) > ?;`
 	deleteStmt := `DELETE FROM CLIENTS WHERE ABS(? - creation_time) > ?;`
 

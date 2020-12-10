@@ -1,4 +1,4 @@
-package api
+package server
 
 import (
 	"bytes"
@@ -7,20 +7,17 @@ import (
 	"net/http"
 	"net/url"
 
-	s3support "web-service/src/s3support"
-
 	guuid "github.com/google/uuid"
-	nlp "web-service/src/text_similarity"
 )
 
-func CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 	body := make(map[string]interface{})
 
 	if req.Method != "GET" {
 		body["Error"] = fmt.Sprintf("%s request type isn't supported", req.Method)
 
-		compriseMsg(w, body, http.StatusMethodNotAllowed)
-		logMsg(warningLogger, body, http.StatusMethodNotAllowed)
+		s.compriseMsg(w, body, http.StatusMethodNotAllowed)
+		s.logMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -29,8 +26,8 @@ func CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = "Unable to parse input url"
 		body["Error"] = err.Error()
 
-		compriseMsg(w, body, http.StatusUnprocessableEntity)
-		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
+		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
+		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -44,10 +41,10 @@ func CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 		} else {
 			body["Error"] = fmt.Sprint("Incorrect form of the input url: ", req.URL.RawQuery)
 		}
-		compriseMsg(w, body, http.StatusUnprocessableEntity)
-		logMsg(warningLogger, body, http.StatusUnprocessableEntity)
+		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
+		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 
-	} else if result, err := db.GetResValue(id); reportUnreadyClient(w, id, result, err) {
+	} else if result, err := s.db.GetResValue(id); s.reportUnreadyClient(w, id, result, err) {
 		return
 	}
 
@@ -55,7 +52,7 @@ func CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 	var okErr error = nil
 	var fileLen [2]int64
 	for idx, name := range fileNames {
-		r, err := s3support.DownloadFileByUUID(id, name)
+		r, err := s.s3Client.DownloadFileByUUID(id, name)
 		if err != nil {
 			okErr = err
 			break
@@ -73,30 +70,30 @@ func CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 	if okErr != nil {
 		body["Error"] = okErr.Error()
 
-		compriseMsg(w, body, http.StatusAccepted)
-		logMsg(warningLogger, body, http.StatusAccepted)
+		s.compriseMsg(w, body, http.StatusAccepted)
+		s.logMsg(s.warningLogger, body, http.StatusAccepted)
 	} else {
 		option, html := urlParsedQuery.Get("option"), urlParsedQuery.Get("html")
 		editcost, timeout := urlParsedQuery.Get("editcost"), urlParsedQuery.Get("timeout")
 
-		res, err := nlp.GetFilesDifference(contentBuf, fileLen, option, html, editcost, timeout)
+		res, err := s.nlpCore.GetFilesDifference(contentBuf, fileLen, option, html, editcost, timeout)
 		if err != nil {
 			body["Message"] = fmt.Sprintf("Unable to get content difference for %s, %s", fileNames[0], fileNames[1])
 			body["Error"] = err.Error()
 
-			compriseMsg(w, body, http.StatusInternalServerError)
-			logMsg(errorLogger, body, http.StatusInternalServerError)
+			s.compriseMsg(w, body, http.StatusInternalServerError)
+			s.logMsg(s.errorLogger, body, http.StatusInternalServerError)
 
 		} else {
 			body["Result"] = res
 
 			if html == "false" {
-				compriseMsg(w, body, http.StatusOK)
+				s.compriseMsg(w, body, http.StatusOK)
 			} else {
 				w.Header().Set("Content-Type", "text/html; charset=utf-8")
 				fmt.Fprintf(w, res)
 			}
-			logMsg(debugLogger, body, http.StatusOK)
+			s.logMsg(s.debugLogger, body, http.StatusOK)
 		}
 	}
 }
