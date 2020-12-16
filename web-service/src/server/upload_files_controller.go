@@ -9,6 +9,7 @@ import (
 	"path"
 
 	guuid "github.com/google/uuid"
+	utils "web-service/src/utils"
 )
 
 func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
@@ -17,8 +18,8 @@ func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method != "POST" {
 		body["Error"] = fmt.Sprintf("%s request type isn't supported", req.Method)
-		s.compriseMsg(w, body, http.StatusMethodNotAllowed)
-		s.logMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
+		utils.CompriseMsg(w, body, http.StatusMethodNotAllowed)
+		utils.LogMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -27,8 +28,8 @@ func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = "Unable to parse input files"
 		body["Error"] = err.Error()
 
-		s.compriseMsg(w, body, http.StatusPreconditionFailed)
-		s.logMsg(s.errorLogger, body, http.StatusPreconditionFailed)
+		utils.CompriseMsg(w, body, http.StatusPreconditionFailed)
+		utils.LogMsg(s.errorLogger, body, http.StatusPreconditionFailed)
 		return
 	}
 
@@ -37,8 +38,8 @@ func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = "Unable to store input files"
 		body["Error"] = err.Error()
 
-		s.compriseMsg(w, body, http.StatusInternalServerError)
-		s.logMsg(s.errorLogger, body, http.StatusInternalServerError)
+		utils.CompriseMsg(w, body, http.StatusInternalServerError)
+		utils.LogMsg(s.errorLogger, body, http.StatusInternalServerError)
 		return
 	}
 
@@ -49,8 +50,8 @@ func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 			body["Message"] = http.StatusText(http.StatusInternalServerError)
 			body["Error"] = err.Error()
 
-			s.compriseMsg(w, body, http.StatusInternalServerError)
-			s.logMsg(s.errorLogger, body, http.StatusInternalServerError)
+			utils.CompriseMsg(w, body, http.StatusInternalServerError)
+			utils.LogMsg(s.errorLogger, body, http.StatusInternalServerError)
 			return
 		}
 		defer infile.Close()
@@ -60,8 +61,8 @@ func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 			body["Message"] = http.StatusText(http.StatusInternalServerError)
 			body["Error"] = err.Error()
 
-			s.compriseMsg(w, body, http.StatusInternalServerError)
-			s.logMsg(s.errorLogger, body, http.StatusInternalServerError)
+			utils.CompriseMsg(w, body, http.StatusInternalServerError)
+			utils.LogMsg(s.errorLogger, body, http.StatusInternalServerError)
 			return
 		}
 
@@ -69,8 +70,8 @@ func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 			body["Message"] = http.StatusText(http.StatusInternalServerError)
 			body["Error"] = err.Error()
 
-			s.compriseMsg(w, body, http.StatusInternalServerError)
-			s.logMsg(s.errorLogger, body, http.StatusInternalServerError)
+			utils.CompriseMsg(w, body, http.StatusInternalServerError)
+			utils.LogMsg(s.errorLogger, body, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -79,6 +80,6 @@ func (s *Server) uploadFilesHandler(w http.ResponseWriter, req *http.Request) {
 	body["Message"] = fmt.Sprintf("You can view the result of the file analyses at the view %s", id)
 	body["Result"] = id
 
-	s.compriseMsg(w, body, http.StatusOK)
-	s.logMsg(s.debugLogger, body, http.StatusOK)
+	utils.CompriseMsg(w, body, http.StatusOK)
+	utils.LogMsg(s.debugLogger, body, http.StatusOK)
 }

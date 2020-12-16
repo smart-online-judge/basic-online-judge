@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"encoding/json"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"path"
 )
@@ -19,4 +22,20 @@ func InitializeEmptyDir(dirPath string) error {
 		}
 	}
 	return nil
+}
+
+func CompriseMsg(w http.ResponseWriter, body map[string]interface{}, status int) error {
+	w.Header().Add("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+
+	err := json.NewEncoder(w).Encode(body)
+	return err
+}
+
+func LogMsg(logger *log.Logger, body map[string]interface{}, status int) {
+	if status != http.StatusOK {
+		logger.Println(body["Error"])
+	} else {
+		logger.Println(body["Result"])
+	}
 }

@@ -13,11 +13,6 @@ import (
 
 type DbClientService struct {
 	dbConnection *sql.DB
-
-	createClientStmt     *sql.Stmt
-	updateClientResStmt  *sql.Stmt
-	updateClientTimeStmt *sql.Stmt
-	getClientResStmt     *sql.Stmt
 }
 
 func NewDbClientService(db_path string) (*DbClientService, error) {
@@ -27,9 +22,6 @@ func NewDbClientService(db_path string) (*DbClientService, error) {
 }
 
 func (self *DbClientService) Close() error {
-	self.createClientStmt.Close()
-	self.updateClientResStmt.Close()
-	self.getClientResStmt.Close()
 	err := self.dbConnection.Close()
 	return err
 }
@@ -59,31 +51,14 @@ func (self *DbClientService) initialize(db_path string) error {
 		return err
 	}
 
-	self.createClientStmt, err = self.dbConnection.Prepare(
-		"INSERT INTO CLIENTS (uuid, creation_time, status, result) VALUES (?, ?, ?, ?);")
-	if err != nil {
-		return err
-	}
-
-	self.updateClientResStmt, err = self.dbConnection.Prepare(
-		"UPDATE CLIENTS SET status = ?, result = ? WHERE uuid = ?;")
-	if err != nil {
-		return err
-	}
-
-	self.getClientResStmt, err = self.dbConnection.Prepare(
-		"SELECT status, result FROM CLIENTS WHERE uuid == ?;")
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func (self *DbClientService) GetResValue(id guuid.UUID) (*utils.Pair, error) {
+	sqlStmt := "SELECT status, result FROM CLIENTS WHERE uuid == ?;"
 	var result string
 	var status ResStatus
-	err := self.getClientResStmt.QueryRow(id.String()).Scan(&status, &result)
+	err := self.dbConnection.QueryRow(sqlStmt, id.String()).Scan(&status, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -92,24 +67,25 @@ func (self *DbClientService) GetResValue(id guuid.UUID) (*utils.Pair, error) {
 }
 
 func (self *DbClientService) SavePendingClient(id guuid.UUID, msg string) error {
-	_, err := self.createClientStmt.Exec(
-		id.String(), time.Now().Unix(), Pending, msg)
+	sqlStmt := "INSERT INTO CLIENTS (uuid, creation_time, status, result) VALUES (?, ?, ?, ?);"
+	_, err := self.dbConnection.Exec(
+		sqlStmt, id.String(), time.Now().Unix(), Pending, msg)
 
 	return err
 }
 
 func (self *DbClientService) SaveErrorClient(id guuid.UUID, err_msg string) error {
-	_, err := self.updateClientResStmt.Exec(
-		Error, err_msg, id.String())
+	sqlStmt := "UPDATE CLIENTS SET status = ?, result = ? WHERE uuid = ?;"
+	_, err := self.dbConnection.Exec(
+		sqlStmt, Error, err_msg, id.String())
 
 	return err
 }
 
 func (self *DbClientService) SaveSuccessClient(id guuid.UUID, result_json string) error {
-	_, err := self.updateClientResStmt.Exec(
-		Success,
-		result_json,
-		id.String())
+	sqlStmt := "UPDATE CLIENTS SET status = ?, result = ? WHERE uuid = ?;"
+	_, err := self.dbConnection.Exec(
+		sqlStmt, Success, result_json, id.String())
 
 	return err
 }
