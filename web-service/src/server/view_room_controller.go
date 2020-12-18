@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	guuid "github.com/google/uuid"
+	utils "web-service/src/utils"
 )
 
 func (s *Server) prepareViewForUUID(id guuid.UUID) {
@@ -40,8 +41,8 @@ func (s *Server) viewRoomHandler(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "GET" {
 		body["Error"] = fmt.Sprintf("%s request type isn't supported", req.Method)
 
-		s.compriseMsg(w, body, http.StatusMethodNotAllowed)
-		s.logMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
+		utils.CompriseMsg(w, body, http.StatusMethodNotAllowed)
+		utils.LogMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
 	// Retrieve view id.
@@ -50,8 +51,8 @@ func (s *Server) viewRoomHandler(w http.ResponseWriter, req *http.Request) {
 		body["Error"] = fmt.Sprint("Incorrect form of url", req.URL.Path)
 		body["Message"] = "hostname/api/view/{id} expected"
 
-		s.compriseMsg(w, body, http.StatusMethodNotAllowed)
-		s.logMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
+		utils.CompriseMsg(w, body, http.StatusMethodNotAllowed)
+		utils.LogMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -60,8 +61,8 @@ func (s *Server) viewRoomHandler(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = fmt.Sprintf("Invalid id(%s) value: UUID4 expected", id_str)
 		body["Error"] = err.Error()
 
-		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
-		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
+		utils.CompriseMsg(w, body, http.StatusUnprocessableEntity)
+		utils.LogMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -74,7 +75,7 @@ func (s *Server) viewRoomHandler(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = "Text similarity matrix"
 		body["Files"] = s.s3Client.ListFilesByUUID(view_id)
 
-		s.compriseMsg(w, body, http.StatusOK)
-		s.logMsg(s.debugLogger, body, http.StatusOK)
+		utils.CompriseMsg(w, body, http.StatusOK)
+		utils.LogMsg(s.debugLogger, body, http.StatusOK)
 	}
 }

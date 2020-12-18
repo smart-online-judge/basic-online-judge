@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	guuid "github.com/google/uuid"
+	utils "web-service/src/utils"
 )
 
 func (s *Server) getFileLinkById(w http.ResponseWriter, req *http.Request) {
@@ -15,8 +16,8 @@ func (s *Server) getFileLinkById(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "GET" {
 		body["Error"] = fmt.Sprintf("%s request type isn't supported", req.Method)
 
-		s.compriseMsg(w, body, http.StatusMethodNotAllowed)
-		s.logMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
+		utils.CompriseMsg(w, body, http.StatusMethodNotAllowed)
+		utils.LogMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -25,8 +26,8 @@ func (s *Server) getFileLinkById(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = "Unable to parse input url"
 		body["Error"] = err.Error()
 
-		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
-		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
+		utils.CompriseMsg(w, body, http.StatusUnprocessableEntity)
+		utils.LogMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -37,15 +38,15 @@ func (s *Server) getFileLinkById(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = fmt.Sprintf("Invalid id(%s) value: UUID4 expected", id_str)
 		body["Error"] = err.Error()
 
-		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
-		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
+		utils.CompriseMsg(w, body, http.StatusUnprocessableEntity)
+		utils.LogMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 
 	} else if fileName == "" {
 		body["Error"] = fmt.Sprintf("Invalid filename(%s)", fileName)
 
-		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
-		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
+		utils.CompriseMsg(w, body, http.StatusUnprocessableEntity)
+		utils.LogMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 
 	} else {
@@ -62,13 +63,13 @@ func (s *Server) getFileLinkById(w http.ResponseWriter, req *http.Request) {
 			enc.SetEscapeHTML(false)
 			enc.Encode(body)
 
-			s.logMsg(s.debugLogger, body, http.StatusOK)
+			utils.LogMsg(s.debugLogger, body, http.StatusOK)
 
 		} else {
 			body["Error"] = fmt.Sprintf("Unable to find a file with such name %s", fileName)
 
-			s.compriseMsg(w, body, http.StatusAccepted)
-			s.logMsg(s.warningLogger, body, http.StatusAccepted)
+			utils.CompriseMsg(w, body, http.StatusAccepted)
+			utils.LogMsg(s.warningLogger, body, http.StatusAccepted)
 		}
 	}
 }

@@ -2,12 +2,14 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 
 	guuid "github.com/google/uuid"
+	utils "web-service/src/utils"
 )
 
 func (s *Server) compareFilesHandler(w http.ResponseWriter, req *http.Request) {
@@ -16,8 +18,8 @@ func (s *Server) compareFilesHandler(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "GET" {
 		body["Error"] = fmt.Sprintf("%s request type isn't supported", req.Method)
 
-		s.compriseMsg(w, body, http.StatusMethodNotAllowed)
-		s.logMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
+		utils.CompriseMsg(w, body, http.StatusMethodNotAllowed)
+		utils.LogMsg(s.warningLogger, body, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -26,8 +28,8 @@ func (s *Server) compareFilesHandler(w http.ResponseWriter, req *http.Request) {
 		body["Message"] = "Unable to parse input url"
 		body["Error"] = err.Error()
 
-		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
-		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
+		utils.CompriseMsg(w, body, http.StatusUnprocessableEntity)
+		utils.LogMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -40,8 +42,13 @@ func (s *Server) compareFilesHandler(w http.ResponseWriter, req *http.Request) {
 		} else {
 			body["Error"] = fmt.Sprint("Incorrect form of the input url: ", req.URL.String())
 		}
-		s.compriseMsg(w, body, http.StatusUnprocessableEntity)
-		s.logMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		enc := json.NewEncoder(w)
+		enc.SetEscapeHTML(false)
+		enc.Encode(body)
+
+		utils.LogMsg(s.warningLogger, body, http.StatusUnprocessableEntity)
 		return
 
 	} else if result, err := s.db.GetResValue(id); s.reportUnreadyClient(w, id, result, err) {
@@ -70,8 +77,8 @@ func (s *Server) compareFilesHandler(w http.ResponseWriter, req *http.Request) {
 	if okErr != nil {
 		body["Error"] = okErr.Error()
 
-		s.compriseMsg(w, body, http.StatusAccepted)
-		s.logMsg(s.warningLogger, body, http.StatusAccepted)
+		utils.CompriseMsg(w, body, http.StatusAccepted)
+		utils.LogMsg(s.warningLogger, body, http.StatusAccepted)
 	} else {
 		option, html := urlParsedQuery.Get("option"), urlParsedQuery.Get("html")
 		editcost, timeout := urlParsedQuery.Get("editcost"), urlParsedQuery.Get("timeout")
@@ -81,19 +88,19 @@ func (s *Server) compareFilesHandler(w http.ResponseWriter, req *http.Request) {
 			body["Message"] = fmt.Sprintf("Unable to get content difference for %s, %s", fileNames[0], fileNames[1])
 			body["Error"] = err.Error()
 
-			s.compriseMsg(w, body, http.StatusInternalServerError)
-			s.logMsg(s.errorLogger, body, http.StatusInternalServerError)
+			utils.CompriseMsg(w, body, http.StatusInternalServerError)
+			utils.LogMsg(s.errorLogger, body, http.StatusInternalServerError)
 
 		} else {
 			body["Result"] = res
 
 			if html == "false" {
-				s.compriseMsg(w, body, http.StatusOK)
+				utils.CompriseMsg(w, body, http.StatusOK)
 			} else {
 				w.Header().Set("Content-Type", "text/html; charset=utf-8")
 				fmt.Fprintf(w, res)
 			}
-			s.logMsg(s.debugLogger, body, http.StatusOK)
+			utils.LogMsg(s.debugLogger, body, http.StatusOK)
 		}
 	}
 }
