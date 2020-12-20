@@ -12,7 +12,7 @@ import (
 	utils "web-service/src/utils"
 )
 
-func (s *Server) compareFilesHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) CompareFilesHandler(w http.ResponseWriter, req *http.Request) {
 	body := make(map[string]interface{})
 
 	if req.Method != "GET" {
