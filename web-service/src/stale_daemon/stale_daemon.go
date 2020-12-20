@@ -53,7 +53,7 @@ func (self *StaleDaemon) StartAsync() {
 
 	self.ticker = time.NewTicker(time.Duration(self.runPeriod) * time.Second)
 	go func() {
-		for range self.ticker.C {
+		for ; true; <-self.ticker.C {
 			self.removeStaleData()
 		}
 	}()
