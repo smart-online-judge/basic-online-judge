@@ -1,16 +1,16 @@
 package server_test
 
 import (
-	"io/ioutil"
-	"testing"
-	"net/http/httptest"
-	"encoding/json"
-	"mime/multipart"
 	"bytes"
+	"encoding/json"
+	"io/ioutil"
+	"mime/multipart"
+	"net/http/httptest"
+	"testing"
 
+	config "web-service/src/config"
 	http_server "web-service/src/server"
 	utils "web-service/src/utils"
-	config "web-service/src/config"
 )
 
 var server *http_server.Server
@@ -29,9 +29,9 @@ func UploadFilesActivityWorksInNormalUseCase(t *testing.T) {
 	writer.Close()
 
 	req := httptest.NewRequest("POST", "/", &buffer)
-	req.Header.Set("Content-Type", "multipart/form-data; " + "boundary=" + "\"" + writer.Boundary() + "\"")
+	req.Header.Set("Content-Type", "multipart/form-data; "+"boundary="+"\""+writer.Boundary()+"\"")
 	server.UploadFilesHandler(w, req)
- 	result := w.Result()
+	result := w.Result()
 
 	var unmarshaled map[string]interface{}
 	body_bytes, _ := ioutil.ReadAll(result.Body)
@@ -47,7 +47,7 @@ func UploadFilesActivityHandlesErrors(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/", nil)
 	server.UploadFilesHandler(w, req)
- 	result := w.Result()
+	result := w.Result()
 	if result.StatusCode == 200 {
 		t.Error("Status code should not be 200")
 	}
