@@ -1,8 +1,8 @@
 package s3support_test
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 
 	fuzz "github.com/google/gofuzz"
 	guuid "github.com/google/uuid"
@@ -10,7 +10,6 @@ import (
 	config "web-service/src/config"
 	s3support "web-service/src/s3support"
 	utils "web-service/src/utils"
-
 )
 
 var minio *s3support.MinioService
@@ -18,7 +17,6 @@ var minio *s3support.MinioService
 const (
 	configPath = "../../config/main_config.json"
 )
-
 
 func TestSetup(t *testing.T) {
 	conf, err := config.NewConfig(configPath)
@@ -39,7 +37,7 @@ func TestSetup(t *testing.T) {
 		t.Fatal("Unable to initialize s3Client", err)
 	}
 
-	t.Run("Fuzz", TestFuzz)
+	t.Run("Fuzz", TestStoreFileByUUIDDoesNotPanicWithRandomData)
 }
 
 // This method is an example of how to use fuzzing now, it might be
